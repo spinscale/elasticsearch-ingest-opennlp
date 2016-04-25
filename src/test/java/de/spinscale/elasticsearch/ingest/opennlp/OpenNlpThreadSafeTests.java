@@ -1,0 +1,104 @@
+/*
+ * Copyright [2016] [Alexander Reelsen]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package de.spinscale.elasticsearch.ingest.opennlp;
+
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.test.ESTestCase;
+import org.junit.After;
+import org.junit.Before;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.core.Is.is;
+
+public class OpenNlpThreadSafeTests extends ESTestCase {
+
+    private OpenNlpService service;
+    private ExecutorService executorService;
+
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
+        executorService = Executors.newFixedThreadPool(10);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        super.tearDown();
+        executorService.shutdownNow();
+    }
+
+    public void testThatOpenNlpServiceIsThreadSafe() throws Exception {
+        int runs = 1000;
+        CountDownLatch latch = new CountDownLatch(runs);
+        List<OpennlpRunnable> runnables = new ArrayList<>();
+
+        for (int i = 0; i < runs; i++) {
+            String city = randomFrom("Munich", "Stockholm", "Madrid", "San Francisco", "Cologne", "Paris", "London", "Amsterdam");
+
+            OpennlpRunnable runnable = new OpennlpRunnable(i, city, latch);
+            runnables.add(runnable);
+            executorService.submit(runnable);
+        }
+
+        latch.await(30, TimeUnit.SECONDS);
+        for (OpennlpRunnable runnable : runnables) {
+            runnable.assertResultIsCorrect();
+        }
+    }
+
+    private class OpennlpRunnable implements Runnable {
+
+        private int idx;
+        final String city;
+        private CountDownLatch latch;
+        String result;
+
+        public OpennlpRunnable(int idx, String city, CountDownLatch latch) {
+            this.idx = idx;
+            this.city = city;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                List<String> locations = service.findLocations(city + " is really an awesome city, but others are as well.");
+                // logger.info("Got {}, expected {}, index {}", locations, city, idx);
+                if (locations.size() > 0) {
+                    result = locations.get(0);
+                }
+            } catch (Exception e) {
+                logger.error("Unexpected exception", e);
+            } finally {
+                latch.countDown();
+            }
+        }
+
+        private void assertResultIsCorrect() {
+            assertThat(String.format(Locale.ROOT, "Expected task %s to have result %s", idx, city), result, is(city));
+        }
+    }
+}

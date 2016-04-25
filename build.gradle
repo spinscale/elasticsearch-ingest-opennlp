@@ -1,0 +1,85 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath "org.elasticsearch.gradle:build-tools:5.0.0-alpha1"
+  }
+}
+
+plugins {
+  id "de.undercouch.download" version "2.1.0"
+}
+
+import de.undercouch.gradle.tasks.download.Download
+
+group = 'de.spinscale.elasticsearch.ingest'
+version = '0.0.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'com.bmuschko.nexus'
+apply plugin: 'idea'
+
+esplugin {
+  name 'ingest-opennlp'
+  description 'Ingest processor that is doing named entity extraction using OpenNLP'
+  classname 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+  compile 'org.elasticsearch:elasticsearch:5.0.0-alpha1'
+  compile 'org.apache.opennlp:opennlp-tools:1.6.0'
+
+  testCompile 'org.elasticsearch.test:framework:5.0.0-alpha1'
+}
+
+bundlePlugin {
+  from('src/test/resources/models') {
+    into 'config/'
+  }
+}
+
+// FIXME check style currently returns an error when run, that checkstyle.xml could not be found
+checkstyleMain.enabled = false
+checkstyleTest.enabled = false
+
+// FIXME dependency license check needs to be enabled
+dependencyLicenses.enabled = false
+
+// FIXME thirdparty audit needs to be enabled
+thirdPartyAudit.enabled = false
+
+// Uncomment this to skip license header checks
+// licenseHeaders.enabled = false
+
+// exlude the models for forbidden API check
+forbiddenPatterns {
+  exclude '**/*.bin'
+}
+
+// download the models before the tests are run, also needed for packaging
+project.afterEvaluate {
+  processTestResources.dependsOn downloadModels
+}
+
+// download the models but dont overwrite existing ones
+task downloadModels << {
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'src/test/resources/models', 'en-ner-person.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'src/test/resources/models', 'en-ner-location.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'src/test/resources/models', 'en-ner-date.bin')
+}
+
+def downloadIfNotExists(String url, String dir, String file) {
+  new File(dir).mkdirs()
+  if (new File(dir + '/' + file).exists() == false) {
+    download {
+      src url
+      dest dir
+    }
+  }
+}
