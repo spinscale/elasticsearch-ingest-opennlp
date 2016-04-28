@@ -36,28 +36,18 @@ import static org.hamcrest.Matchers.not;
 
 public class OpenNlpProcessorTests extends ESTestCase {
 
-    private OpenNlpProcessor processor;
     private OpenNlpService service;
 
     @Before
-    public void createStandardProcessor() throws IOException {
-        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(),
-                Settings.EMPTY).start();
-        processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field",
-                "target_field", EnumSet.allOf(OpenNlpProcessor.Property.class));
+    public void createOpenNlpService() throws IOException {
+        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
     }
 
     public void testThatExtractionsWork() throws Exception {
-        Map<String, Object> document = new HashMap<>();
-        document.put("source_field", "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever " +
-                "scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the " +
-                "hottest day of the year.");
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+                EnumSet.allOf(OpenNlpProcessor.Property.class));
 
-        IngestDocument ingestDocument = RandomDocumentPicks.randomIngestDocument(random(), document);
-        processor.execute(ingestDocument);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> entityData = (Map<String, Object>) ingestDocument.getSourceAndMetadata().get("target_field");
+        Map<String, Object> entityData = getIngestDocumentData(processor);
 
         assertThatHasElements(entityData, "names", "Kobe Bryant", "Michael Jordan");
         assertThatHasElements(entityData, "dates", "Yesterday");
@@ -65,9 +55,17 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatFieldsCanBeExcluded() throws Exception {
-        processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field",
-                "target_field", EnumSet.of(OpenNlpProcessor.Property.DATES));
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+                EnumSet.of(OpenNlpProcessor.Property.DATES));
 
+        Map<String, Object> entityData = getIngestDocumentData(processor);
+
+        assertThat(entityData, not(hasKey("locations")));
+        assertThat(entityData, not(hasKey("names")));
+        assertThatHasElements(entityData, "dates", "Yesterday");
+    }
+
+    private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
         Map<String, Object> document = new HashMap<>();
         document.put("source_field", "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever " +
                 "scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the " +
@@ -77,10 +75,8 @@ public class OpenNlpProcessorTests extends ESTestCase {
         processor.execute(ingestDocument);
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> entityData = (Map<String, Object>) ingestDocument.getSourceAndMetadata().get("target_field");
-        assertThat(entityData, not(hasKey("locations")));
-        assertThat(entityData, not(hasKey("names")));
-        assertThatHasElements(entityData, "dates", "Yesterday");
+        Map<String, Object> data = (Map<String, Object>) ingestDocument.getSourceAndMetadata().get("target_field");
+        return data;
     }
 
     private void assertThatHasElements(Map<String, Object> entityData, String field, String ... items) {

@@ -90,6 +90,5 @@ There is no need to configure anything, as the models art part of the zip file.
 ## Bugs & TODO
 
 * A couple of groovy build mechanisms from core are disabled. See the `build.gradle` for further explanations
-* The tests cannot be run from the IDE, as the models are not found. Also intellij puts everything into the `out` directory, should be `build-idea`
 * Only the most basic NLP functions are exposed, please fork and add your own code to this!
 
