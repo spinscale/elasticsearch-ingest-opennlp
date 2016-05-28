@@ -24,6 +24,7 @@ import org.elasticsearch.test.ESTestCase;
 import org.junit.Before;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -65,15 +66,44 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "dates", "Yesterday");
     }
 
+    public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+                EnumSet.allOf(OpenNlpProcessor.Property.class));
+
+        IngestDocument ingestDocument = getIngestDocument();
+
+        Map<String, Object> entityData = new HashMap<>();
+        entityData.put("names", Arrays.asList("Magic Johnson", "Kobe Bryant"));
+        entityData.put("locations", Arrays.asList("Paris", "Munich"));
+        entityData.put("dates", Arrays.asList("Today", "Yesterday"));
+
+        ingestDocument.setFieldValue("target_field", entityData);
+
+        processor.execute(ingestDocument);
+
+        entityData = getIngestDocumentData(ingestDocument);
+
+        assertThatHasElements(entityData, "names", "Magic Johnson", "Kobe Bryant", "Michael Jordan");
+        assertThatHasElements(entityData, "dates", "Today", "Yesterday");
+        assertThatHasElements(entityData, "locations", "Paris", "Munich", "New York");
+    }
+
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
+        IngestDocument ingestDocument = getIngestDocument();
+        processor.execute(ingestDocument);
+        return getIngestDocumentData(ingestDocument);
+    }
+
+    private IngestDocument getIngestDocument() throws Exception {
         Map<String, Object> document = new HashMap<>();
         document.put("source_field", "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever " +
                 "scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the " +
                 "hottest day of the year.");
 
-        IngestDocument ingestDocument = RandomDocumentPicks.randomIngestDocument(random(), document);
-        processor.execute(ingestDocument);
+        return RandomDocumentPicks.randomIngestDocument(random(), document);
+    }
 
+    private Map<String, Object> getIngestDocumentData(IngestDocument ingestDocument) throws Exception {
         @SuppressWarnings("unchecked")
         Map<String, Object> data = (Map<String, Object>) ingestDocument.getSourceAndMetadata().get("target_field");
         return data;

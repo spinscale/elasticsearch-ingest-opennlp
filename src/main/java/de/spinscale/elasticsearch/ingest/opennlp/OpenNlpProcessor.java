@@ -24,6 +24,7 @@ import org.elasticsearch.ingest.core.IngestDocument;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -59,26 +60,21 @@ public class OpenNlpProcessor extends AbstractProcessor {
 
         if (Strings.hasLength(content)) {
             Map<String, List<String>> entities = new HashMap<>();
+            mergeExisting(entities, ingestDocument, targetField);
 
             if (properties.contains(Property.NAMES)) {
                 List<String> names = openNlpService.findNames(content);
-                if (names.size() > 0) {
-                    entities.put("names", names);
-                }
+                merge(entities, "names", names);
             }
 
             if (properties.contains(Property.DATES)) {
                 List<String> dates = openNlpService.findDates(content);
-                if (dates.size() > 0) {
-                    entities.put("dates", dates);
-                }
+                merge(entities, "dates", dates);
             }
 
             if (properties.contains(Property.LOCATIONS)) {
                 List<String> locations = openNlpService.findLocations(content);
-                if (locations.size() > 0) {
-                    entities.put("locations", locations);
-                }
+                merge(entities, "locations", locations);
             }
 
             ingestDocument.setFieldValue(targetField, entities);
@@ -139,4 +135,27 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
     }
 
+    private static void mergeExisting(Map<String,List<String>> entities, IngestDocument ingestDocument, String targetField) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, List<String>> existing = ingestDocument.getFieldValue(targetField, Map.class);
+            if (existing != null)
+                entities.putAll(existing);
+        } 
+        catch(IllegalArgumentException e) {}
+    }
+
+    private static void merge(Map<String,List<String>> map, String key, List<String> values) {
+        if (values.size() > 0) {
+            if (!map.containsKey(key))
+              map.put(key, values);
+            else {
+              List<String> merged = new ArrayList<String>();
+              merged.addAll( map.get(key) );
+              merged.removeAll(values); // remove duplicates
+              merged.addAll(values);
+              map.put(key, merged);
+            }
+        }
+    }
 }
