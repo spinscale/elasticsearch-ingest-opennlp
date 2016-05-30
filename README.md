@@ -23,7 +23,7 @@ PUT _ingest/pipeline/opennlp-pipeline
   ]
 }
 
-PUT /my-index/my-type/1?pipeline_id=opennlp-pipeline
+PUT /my-index/my-type/1?pipeline=opennlp-pipeline
 {
   "my_field" : "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."
 }
