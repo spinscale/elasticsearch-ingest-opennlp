@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 
 import static org.elasticsearch.ingest.core.ConfigurationUtils.newConfigurationException;
 import static org.elasticsearch.ingest.core.ConfigurationUtils.readOptionalList;
@@ -40,12 +41,12 @@ public class OpenNlpProcessor extends AbstractProcessor {
 
     public static final String TYPE = "opennlp";
 
-    private final OpenNlpService openNlpService;
+    private final EntityFinderService openNlpService;
     private final String field;
     private final String targetField;
     private final Set<Property> properties;
 
-    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String field, String targetField, Set<Property> properties) throws
+    OpenNlpProcessor(EntityFinderService openNlpService, String tag, String field, String targetField, Set<Property> properties) throws
             IOException {
         super(tag);
         this.openNlpService = openNlpService;
@@ -146,16 +147,13 @@ public class OpenNlpProcessor extends AbstractProcessor {
     }
 
     private static void merge(Map<String,List<String>> map, String key, List<String> values) {
-        if (values.size() > 0) {
-            if (!map.containsKey(key))
-              map.put(key, values);
-            else {
-              List<String> merged = new ArrayList<String>();
-              merged.addAll( map.get(key) );
-              merged.removeAll(values); // remove duplicates
-              merged.addAll(values);
-              map.put(key, merged);
-            }
-        }
+        if (values.size() == 0) return;
+
+        HashSet<String> distinctValues = new HashSet<String>(values);
+        if (map.containsKey(key))
+            distinctValues.addAll(map.get(key));
+
+        List<String> merged = new ArrayList<String>(distinctValues);
+        map.put(key, merged);
     }
 }

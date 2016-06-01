@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * OpenNLP name finders are not thread safe, so we load them via a thread local hack
  */
-public class OpenNlpService {
+public class OpenNlpService implements EntityFinderService {
 
     private final Path configDirectory;
     private final ESLogger logger;
