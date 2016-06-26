@@ -25,6 +25,7 @@ import org.junit.Before;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,10 +86,10 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
         @Override
         public void run() {
             try {
-                List<String> locations = service.findLocations(city + " is really an awesome city, but others are as well.");
+                Set<String> locations = service.findLocations(city + " is really an awesome city, but others are as well.");
                 // logger.info("Got {}, expected {}, index {}", locations, city, idx);
                 if (locations.size() > 0) {
-                    result = locations.get(0);
+                    result = locations.stream().findFirst().get();
                 }
             } catch (Exception e) {
                 logger.error("Unexpected exception", e);

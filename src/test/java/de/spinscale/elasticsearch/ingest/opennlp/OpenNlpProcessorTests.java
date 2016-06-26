@@ -27,15 +27,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
-
-import static org.mockito.Mockito.*;
 
 public class OpenNlpProcessorTests extends ESTestCase {
 
@@ -90,28 +88,6 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "locations", "Paris", "Munich", "New York");
     }
 
-    public void testThatExtractedEntitiesAreDistinct() throws Exception {
-
-        OpenNlpService service = mock(OpenNlpService.class);
-        when(service.findNames(anyString())).thenReturn(Arrays.asList("Kobe Bryant", "Kobe Bryant", "Michael Jordan", "Michael Jordan")); 
-        when(service.findDates(anyString())).thenReturn(Arrays.asList("Yesterday", "Yesterday")); 
-        when(service.findLocations(anyString())).thenReturn(Arrays.asList("Munich", "Munich", "New York", "New York")); 
-
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
-                EnumSet.allOf(OpenNlpProcessor.Property.class));
-
-        Map<String, Object> entityData = getIngestDocumentData(processor);
-
-        List<String> values = getValues(entityData, "names");
-        assertEquals(Arrays.asList("Kobe Bryant", "Michael Jordan"), values);
-
-        values = getValues(entityData, "dates");
-        assertEquals(Arrays.asList("Yesterday"), values);
-
-        values = getValues(entityData, "locations");
-        assertEquals(Arrays.asList("Munich", "New York"), values);
-    }
-
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
         IngestDocument ingestDocument = getIngestDocument();
         processor.execute(ingestDocument);
@@ -137,15 +113,15 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     private void assertThatHasElements(Map<String, Object> entityData, String field, String ... items) {
-        List<String> values = getValues(entityData, field);
+        Set<String> values = getValues(entityData, field);
         assertThat(values, containsInAnyOrder(items));
     }
 
-    private List<String> getValues(Map<String, Object> entityData, String field) {
+    private Set<String> getValues(Map<String, Object> entityData, String field) {
         assertThat(entityData, hasKey(field));
-        assertThat(entityData.get(field), instanceOf(List.class));
+        assertThat(entityData.get(field), instanceOf(Set.class));
         @SuppressWarnings("unchecked")
-        List<String> values = (List<String>) entityData.get(field);
+        Set<String> values = (Set<String>) entityData.get(field);
         return values;
     }
 }

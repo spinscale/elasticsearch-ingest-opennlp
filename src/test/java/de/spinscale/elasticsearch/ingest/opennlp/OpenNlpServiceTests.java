@@ -22,11 +22,11 @@ import org.elasticsearch.test.ESTestCase;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
 
 /*
  * Important: You need to run gradle from the command line first
@@ -37,15 +37,15 @@ public class OpenNlpServiceTests extends ESTestCase {
     public void testThatModelsCanBeLoaded() throws IOException, URISyntaxException {
         OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
 
-        List<String> names = service.findNames("Kobe Bryant was one of the best basketball players of all time.");
+        Set<String> names = service.findNames("Kobe Bryant was one of the best basketball players of all time.");
         assertThat(names, hasSize(1));
-        assertThat(names.get(0), is("Kobe Bryant"));
+        assertThat(names, hasItem("Kobe Bryant"));
 
-        List<String> locations = service.findLocations("Munich is really an awesome city, but New York is as well.");
+        Set<String> locations = service.findLocations("Munich is really an awesome city, but New York is as well.");
         assertThat(locations, hasSize(2));
         assertThat(locations, contains("Munich", "New York"));
 
-        List<String> dates = service.findDates("Yesterday has been the hottest day of the year.");
+        Set<String> dates = service.findDates("Yesterday has been the hottest day of the year.");
         assertThat(dates, hasSize(1));
         assertThat(dates, contains("Yesterday"));
     }

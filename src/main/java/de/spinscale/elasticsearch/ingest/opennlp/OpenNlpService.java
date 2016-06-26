@@ -25,13 +25,13 @@ import org.elasticsearch.common.StopWatch;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.set.Sets;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 /**
  * OpenNLP name finders are not thread safe, so we load them via a thread local hack
@@ -82,25 +82,25 @@ public class OpenNlpService {
         return this;
     }
 
-    public List<String> findNames(String content) {
+    public Set<String> findNames(String content) {
         return find(content, nameFinderMEThreadLocal, nameFinderModel);
     }
 
-    public List<String> findDates(String content) {
+    public Set<String> findDates(String content) {
         return find(content, dateFinderMEThreadLocal, dateFinderModel);
     }
 
-    public List<String> findLocations(String content) {
+    public Set<String> findLocations(String content) {
         return find(content, locationFinderMEThreadLocal, locationFinderModel);
     }
 
-    private List<String> find(String content, ThreadLocal<NameFinderME> finder, TokenNameFinderModel model) {
+    private Set<String> find(String content, ThreadLocal<NameFinderME> finder, TokenNameFinderModel model) {
         String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
         if (finder.get() == null) {
             finder.set(new NameFinderME(model));
         }
         Span spans[] = finder.get().find(tokens);
         String[] names = Span.spansToStrings(spans, tokens);
-        return Arrays.asList(names);
+        return Sets.newHashSet(names);
     }
 }

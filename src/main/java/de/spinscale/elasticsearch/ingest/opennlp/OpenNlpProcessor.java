@@ -24,14 +24,12 @@ import org.elasticsearch.ingest.core.IngestDocument;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import static org.elasticsearch.ingest.core.ConfigurationUtils.newConfigurationException;
 import static org.elasticsearch.ingest.core.ConfigurationUtils.readOptionalList;
@@ -60,21 +58,21 @@ public class OpenNlpProcessor extends AbstractProcessor {
         String content = ingestDocument.getFieldValue(field, String.class);
 
         if (Strings.hasLength(content)) {
-            Map<String, List<String>> entities = new HashMap<>();
+            Map<String, Set<String>> entities = new HashMap<>();
             mergeExisting(entities, ingestDocument, targetField);
 
             if (properties.contains(Property.NAMES)) {
-                List<String> names = openNlpService.findNames(content);
+                Set<String> names = openNlpService.findNames(content);
                 merge(entities, "names", names);
             }
 
             if (properties.contains(Property.DATES)) {
-                List<String> dates = openNlpService.findDates(content);
+                Set<String> dates = openNlpService.findDates(content);
                 merge(entities, "dates", dates);
             }
 
             if (properties.contains(Property.LOCATIONS)) {
-                List<String> locations = openNlpService.findLocations(content);
+                Set<String> locations = openNlpService.findLocations(content);
                 merge(entities, "locations", locations);
             }
 
@@ -130,30 +128,24 @@ public class OpenNlpProcessor extends AbstractProcessor {
         public static Property parse(String value) {
             return valueOf(value.toUpperCase(Locale.ROOT));
         }
+    }
 
-        public String toLowerCase() {
-            return this.toString().toLowerCase(Locale.ROOT);
+    private static void mergeExisting(Map<String,Set<String>> entities, IngestDocument ingestDocument, String targetField) {
+        if (ingestDocument.hasField(targetField)) {
+            @SuppressWarnings("unchecked")
+            Map<String, Set<String>> existing = ingestDocument.getFieldValue(targetField, Map.class);
+            entities.putAll(existing);
+        } else {
+            ingestDocument.setFieldValue(targetField, entities);
         }
     }
 
-    private static void mergeExisting(Map<String,List<String>> entities, IngestDocument ingestDocument, String targetField) {
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, List<String>> existing = ingestDocument.getFieldValue(targetField, Map.class);
-            if (existing != null)
-                entities.putAll(existing);
-        } 
-        catch(IllegalArgumentException e) {}
-    }
-
-    private static void merge(Map<String,List<String>> map, String key, List<String> values) {
+    private static void merge(Map<String,Set<String>> map, String key, Set<String> values) {
         if (values.size() == 0) return;
 
-        HashSet<String> distinctValues = new HashSet<String>(values);
         if (map.containsKey(key))
-            distinctValues.addAll(map.get(key));
+            values.addAll(map.get(key));
 
-        List<String> merged = new ArrayList<String>(distinctValues);
-        map.put(key, merged);
+        map.put(key, values);
     }
 }
