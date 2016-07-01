@@ -48,7 +48,7 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
     @After
     public void tearDown() throws Exception {
         super.tearDown();
-        executorService.shutdownNow();
+        terminate(executorService);
     }
 
     public void testThatOpenNlpServiceIsThreadSafe() throws Exception {

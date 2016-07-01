@@ -3,10 +3,10 @@ buildscript {
     mavenLocal()
     mavenCentral()
     jcenter()
-  }
+ }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:5.0.0-alpha3"
+    classpath "org.elasticsearch.gradle:build-tools:5.0.0-alpha4"
   }
 }
 
@@ -26,16 +26,14 @@ apply plugin: 'idea'
 
 esplugin {
   name 'ingest-opennlp'
-  description 'Ingest processor that is doing named entity extraction using OpenNLP'
+  description 'Ingest processor that uses OpenNLP for named entity extraction'
   classname 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
 }
 
 // In this section you declare the dependencies for your production and test code
+// Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
-  compile 'org.elasticsearch:elasticsearch:5.0.0-alpha3'
   compile 'org.apache.opennlp:opennlp-tools:1.6.0'
-
-  testCompile 'org.elasticsearch.test:framework:5.0.0-alpha3'
 }
 
 bundlePlugin {
