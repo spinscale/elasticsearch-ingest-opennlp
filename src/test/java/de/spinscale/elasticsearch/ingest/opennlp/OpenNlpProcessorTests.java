@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,12 +42,18 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     @Before
     public void createOpenNlpService() throws IOException {
-        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
+        Settings settings = Settings.builder()
+                .put("ingest.opennlp.model.file.names", "en-ner-person.bin")
+                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
+                .put("ingest.opennlp.model.file.dates", "en-ner-date.bin")
+                .build();
+
+        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings).start();
     }
 
     public void testThatExtractionsWork() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
-                EnumSet.allOf(OpenNlpProcessor.Property.class));
+                new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -57,7 +64,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatFieldsCanBeExcluded() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
-                EnumSet.of(OpenNlpProcessor.Property.DATES));
+                new HashSet<>(Arrays.asList("dates")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -68,7 +75,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
-                EnumSet.allOf(OpenNlpProcessor.Property.class));
+                new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         IngestDocument ingestDocument = getIngestDocument();
 
@@ -86,6 +93,22 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "names", "Magic Johnson", "Kobe Bryant", "Michael Jordan");
         assertThatHasElements(entityData, "dates", "Today", "Yesterday");
         assertThatHasElements(entityData, "locations", "Paris", "Munich", "New York");
+    }
+
+    public void testConstructorNoFieldsSpecified() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        config.put("field", "source_field");
+        config.put("target_field", "target_field");
+
+        OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
+        OpenNlpProcessor processor = factory.doCreate(randomAsciiOfLength(10), config);
+
+        Map<String, Object> entityData = getIngestDocumentData(processor);
+
+        assertThatHasElements(entityData, "names", "Kobe Bryant", "Michael Jordan");
+        assertThatHasElements(entityData, "dates", "Yesterday");
+        assertThatHasElements(entityData, "locations", "Munich", "New York");
+
     }
 
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {

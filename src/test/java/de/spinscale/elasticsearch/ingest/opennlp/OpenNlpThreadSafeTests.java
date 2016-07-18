@@ -41,7 +41,10 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
+        Settings settings = Settings.builder()
+                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
+                .build();
+        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings).start();
         executorService = Executors.newFixedThreadPool(10);
     }
 
@@ -86,7 +89,7 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
         @Override
         public void run() {
             try {
-                Set<String> locations = service.findLocations(city + " is really an awesome city, but others are as well.");
+                Set<String> locations = service.find(city + " is really an awesome city, but others are as well.", "locations");
                 // logger.info("Got {}, expected {}, index {}", locations, city, idx);
                 if (locations.size() > 0) {
                     result = locations.stream().findFirst().get();

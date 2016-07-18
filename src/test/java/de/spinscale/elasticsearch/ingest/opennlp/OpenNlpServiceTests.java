@@ -35,17 +35,23 @@ import static org.hamcrest.Matchers.hasSize;
 public class OpenNlpServiceTests extends ESTestCase {
 
     public void testThatModelsCanBeLoaded() throws IOException, URISyntaxException {
-        OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), Settings.EMPTY).start();
+        Settings settings = Settings.builder()
+                .put("ingest.opennlp.model.file.names", "en-ner-person.bin")
+                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
+                .put("ingest.opennlp.model.file.dates", "en-ner-date.bin")
+                .build();
+        OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings);
+        service.start();
 
-        Set<String> names = service.findNames("Kobe Bryant was one of the best basketball players of all time.");
+        Set<String> names = service.find("Kobe Bryant was one of the best basketball players of all time.", "names");
         assertThat(names, hasSize(1));
         assertThat(names, hasItem("Kobe Bryant"));
 
-        Set<String> locations = service.findLocations("Munich is really an awesome city, but New York is as well.");
+        Set<String> locations = service.find("Munich is really an awesome city, but New York is as well.", "locations");
         assertThat(locations, hasSize(2));
         assertThat(locations, contains("Munich", "New York"));
 
-        Set<String> dates = service.findDates("Yesterday has been the hottest day of the year.");
+        Set<String> dates = service.find("Yesterday has been the hottest day of the year.", "dates");
         assertThat(dates, hasSize(1));
         assertThat(dates, contains("Yesterday"));
     }

@@ -1,5 +1,5 @@
 ---
-"Test geoip processor with defaults":
+"Test opennlp processor with defaults":
   - do:
       ingest.put_pipeline:
         id: "my_pipeline"

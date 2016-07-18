@@ -23,15 +23,13 @@ import org.elasticsearch.ingest.AbstractProcessorFactory;
 import org.elasticsearch.ingest.IngestDocument;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static org.elasticsearch.ingest.ConfigurationUtils.newConfigurationException;
 import static org.elasticsearch.ingest.ConfigurationUtils.readOptionalList;
 import static org.elasticsearch.ingest.ConfigurationUtils.readStringProperty;
 
@@ -40,40 +38,30 @@ public class OpenNlpProcessor extends AbstractProcessor {
     public static final String TYPE = "opennlp";
 
     private final OpenNlpService openNlpService;
-    private final String field;
+    private final String sourceField;
     private final String targetField;
-    private final Set<Property> properties;
+    private final Set<String> fields;
 
-    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String field, String targetField, Set<Property> properties) throws
+    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, Set<String> fields) throws
             IOException {
         super(tag);
         this.openNlpService = openNlpService;
-        this.field = field;
+        this.sourceField = sourceField;
         this.targetField = targetField;
-        this.properties = properties;
+        this.fields = fields;
     }
 
     @Override
     public void execute(IngestDocument ingestDocument) throws Exception {
-        String content = ingestDocument.getFieldValue(field, String.class);
+        String content = ingestDocument.getFieldValue(sourceField, String.class);
 
         if (Strings.hasLength(content)) {
             Map<String, Set<String>> entities = new HashMap<>();
             mergeExisting(entities, ingestDocument, targetField);
 
-            if (properties.contains(Property.NAMES)) {
-                Set<String> names = openNlpService.findNames(content);
-                merge(entities, "names", names);
-            }
-
-            if (properties.contains(Property.DATES)) {
-                Set<String> dates = openNlpService.findDates(content);
-                merge(entities, "dates", dates);
-            }
-
-            if (properties.contains(Property.LOCATIONS)) {
-                Set<String> locations = openNlpService.findLocations(content);
-                merge(entities, "locations", locations);
+            for (String field : fields) {
+                Set<String> data = openNlpService.find(content, field);
+                merge(entities, field, data);
             }
 
             ingestDocument.setFieldValue(targetField, entities);
@@ -87,7 +75,6 @@ public class OpenNlpProcessor extends AbstractProcessor {
 
     public static final class Factory extends AbstractProcessorFactory<OpenNlpProcessor> {
 
-        static final Set<Property> DEFAULT_PROPERTIES = EnumSet.allOf(Property.class);
         private OpenNlpService openNlpService;
 
         public Factory(OpenNlpService openNlpService) {
@@ -98,35 +85,9 @@ public class OpenNlpProcessor extends AbstractProcessor {
         public OpenNlpProcessor doCreate(String processorTag, Map<String, Object> config) throws Exception {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
-            List<String> propertyNames = readOptionalList(TYPE, processorTag, config, "fields");
-
-            final Set<Property> properties;
-            if (propertyNames != null) {
-                properties = EnumSet.noneOf(Property.class);
-                for (String fieldName : propertyNames) {
-                    try {
-                        properties.add(Property.parse(fieldName));
-                    } catch (Exception e) {
-                        throw newConfigurationException(TYPE, processorTag, "properties", "illegal field option [" +
-                                fieldName + "]. valid values are " + Arrays.toString(Property.values()));
-                    }
-                }
-            } else {
-                properties = DEFAULT_PROPERTIES;
-            }
-
-            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, properties);
-        }
-    }
-
-    enum Property {
-
-        DATES,
-        LOCATIONS,
-        NAMES;
-
-        public static Property parse(String value) {
-            return valueOf(value.toUpperCase(Locale.ROOT));
+            List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
+            final Set<String> foundFields = fields == null || fields.size() == 0 ? openNlpService.getModels() : new HashSet<>(fields);
+            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, foundFields);
         }
     }
 

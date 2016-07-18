@@ -42,6 +42,14 @@ bundlePlugin {
   }
 }
 
+integTest {
+  cluster {
+    setting 'ingest.opennlp.model.file.names',     'en-ner-person.bin'
+    setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
+    setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
+  }
+}
+
 // check style can be disabled, or you can configure a different checkstyle file
 // checkstyleMain.enabled = false
 // checkstyleTest.enabled = false
@@ -67,9 +75,9 @@ project.afterEvaluate {
 
 // download the models but dont overwrite existing ones
 task downloadModels << {
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'src/test/resources/models', 'en-ner-person.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'src/test/resources/models', 'en-ner-location.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'src/test/resources/models', 'en-ner-date.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'src/test/resources/models', 'en-ner-persons.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'src/test/resources/models', 'en-ner-locations.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'src/test/resources/models', 'en-ner-dates.bin')
 }
 
 def downloadIfNotExists(String url, String dir, String file) {
@@ -77,7 +85,7 @@ def downloadIfNotExists(String url, String dir, String file) {
   if (new File(dir + '/' + file).exists() == false) {
     download {
       src url
-      dest dir
+      dest new File(dir, file)
     }
   }
 }

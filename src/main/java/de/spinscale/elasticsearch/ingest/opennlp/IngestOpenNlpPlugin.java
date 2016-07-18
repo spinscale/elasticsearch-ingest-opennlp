@@ -18,6 +18,7 @@
 package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.settings.Setting;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.NodeModule;
 import org.elasticsearch.plugins.Plugin;
 
@@ -26,18 +27,15 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.elasticsearch.common.settings.Setting.groupSetting;
+
 public class IngestOpenNlpPlugin extends Plugin {
 
-    public static final Setting<String> MODEL_NAME_FILE_SETTING=
-            new Setting<>("ingest.opennlp.model.file.name", "en-ner-person.bin", (value) -> value, Setting.Property.NodeScope);
-    public static final Setting<String> MODEL_LOCATION_FILE_SETTING=
-            new Setting<>("ingest.opennlp.model.file.location", "en-ner-location.bin", (value) -> value, Setting.Property.NodeScope);
-    public static final Setting<String> MODEL_DATE_FILE_SETTING=
-            new Setting<>("ingest.opennlp.model.file.date", "en-ner-date.bin", (value) -> value, Setting.Property.NodeScope);
+    public static final Setting<Settings> MODEL_FILE_SETTINGS = groupSetting("ingest.opennlp.model.file.", Setting.Property.NodeScope);
 
     @Override
     public List<Setting<?>> getSettings() {
-        return Arrays.asList(MODEL_DATE_FILE_SETTING, MODEL_LOCATION_FILE_SETTING, MODEL_NAME_FILE_SETTING);
+        return Arrays.asList(MODEL_FILE_SETTINGS);
     }
 
     public void onModule(NodeModule nodeModule) throws IOException {

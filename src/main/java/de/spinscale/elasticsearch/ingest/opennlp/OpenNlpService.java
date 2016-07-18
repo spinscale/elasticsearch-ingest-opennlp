@@ -21,6 +21,7 @@ import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
@@ -31,7 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * OpenNLP name finders are not thread safe, so we load them via a thread local hack
@@ -42,12 +45,8 @@ public class OpenNlpService {
     private final ESLogger logger;
     private Settings settings;
 
-    private ThreadLocal<NameFinderME> nameFinderMEThreadLocal = new ThreadLocal<>();
-    private ThreadLocal<NameFinderME> dateFinderMEThreadLocal = new ThreadLocal<>();
-    private ThreadLocal<NameFinderME> locationFinderMEThreadLocal = new ThreadLocal<>();
-    private TokenNameFinderModel nameFinderModel;
-    private TokenNameFinderModel dateFinderModel;
-    private TokenNameFinderModel locationFinderModel;
+    private ThreadLocal<TokenNameFinderModel> threadLocal = new ThreadLocal<>();
+    private Map<String, TokenNameFinderModel> nameFinderModels = new ConcurrentHashMap<>();
 
     public OpenNlpService(Path configDirectory, Settings settings) {
         this.logger = Loggers.getLogger(getClass(), settings);
@@ -55,52 +54,44 @@ public class OpenNlpService {
         this.settings = settings;
     }
 
+    public Set<String> getModels() {
+        return IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap().keySet();
+    }
+
     protected OpenNlpService start() throws IOException {
-        StopWatch sw = new StopWatch("models-loading").start("names");
-        Path namePath = configDirectory.resolve(IngestOpenNlpPlugin.MODEL_NAME_FILE_SETTING.get(settings));
-        try (InputStream is = Files.newInputStream(namePath)) {
-            nameFinderModel = new TokenNameFinderModel(is);
+        StopWatch sw = new StopWatch("models-loading");
+        Map<String, String> settingsMap = IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap();
+        for (Map.Entry<String, String> entry : settingsMap.entrySet()) {
+            String name = entry.getKey();
+            sw.start(name);
+            Path path = configDirectory.resolve(entry.getValue());
+            try (InputStream is = Files.newInputStream(path)) {
+                nameFinderModels.put(name, new TokenNameFinderModel(is));
+            }
+            sw.stop();
         }
 
-        sw.stop().start("dates");
-
-        Path datePath = configDirectory.resolve(IngestOpenNlpPlugin.MODEL_DATE_FILE_SETTING.get(settings));
-        try (InputStream is = Files.newInputStream(datePath)) {
-            dateFinderModel = new TokenNameFinderModel(is);
-        }
-
-        sw.stop().start("locations");
-
-        Path locationPath = configDirectory.resolve(IngestOpenNlpPlugin.MODEL_LOCATION_FILE_SETTING.get(settings));
-        try (InputStream is = Files.newInputStream(locationPath)) {
-            locationFinderModel = new TokenNameFinderModel(is);
-        }
-
-        sw.stop();
-        logger.info("Read models in [{}]", sw.totalTime());
+        logger.info("Read models in [{}] for {}", sw.totalTime(), settingsMap.keySet());
 
         return this;
     }
 
-    public Set<String> findNames(String content) {
-        return find(content, nameFinderMEThreadLocal, nameFinderModel);
-    }
+    public Set<String> find(String content, String field) {
+        try {
+            if (!nameFinderModels.containsKey(field)) {
+                throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
+            }
+            TokenNameFinderModel finderModel= nameFinderModels.get(field);
+            if (threadLocal.get() == null || !threadLocal.get().equals(finderModel)) {
+                threadLocal.set(finderModel);
+            }
 
-    public Set<String> findDates(String content) {
-        return find(content, dateFinderMEThreadLocal, dateFinderModel);
-    }
-
-    public Set<String> findLocations(String content) {
-        return find(content, locationFinderMEThreadLocal, locationFinderModel);
-    }
-
-    private Set<String> find(String content, ThreadLocal<NameFinderME> finder, TokenNameFinderModel model) {
-        String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
-        if (finder.get() == null) {
-            finder.set(new NameFinderME(model));
+            String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
+            Span spans[] = new NameFinderME(finderModel).find(tokens);
+            String[] names = Span.spansToStrings(spans, tokens);
+            return Sets.newHashSet(names);
+        } finally {
+            threadLocal.remove();
         }
-        Span spans[] = finder.get().find(tokens);
-        String[] names = Span.spansToStrings(spans, tokens);
-        return Sets.newHashSet(names);
     }
 }

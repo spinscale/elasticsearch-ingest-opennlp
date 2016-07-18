@@ -61,13 +61,14 @@ Valid values are `names`, `dates` and `locations`.
 
 ## Configuration
 
-There are only three settings, which configure the path of the models being used (note that those need to be in the `config/` to be readable due to the Java Security Manager.
+You can configure own models per field, the setting for this is prefixed `ingest.opennlp.model.file.`. So you can configure any model with any field name, by specifying a name and a path to file, like the three examples below:
 
 | Parameter | Use |
 | --- | --- |
-| ingest.opennlp.model.file.name     | Configure the file for named entity recognition    |
-| ingest.opennlp.model.file.location | Configure the file for location entity recognition |
-| ingest.opennlp.model.file.date     | Configure the file for date entity recognition     |
+| ingest.opennlp.model.file.name     | Configure the file for named entity recognition for the field name    |
+| ingest.opennlp.model.file.date     | Configure the file for date entity recognition for the field date     |
+
+By default the fields `name`, `date`, `location` are configured with the respective models.
 
 ## Setup
 
