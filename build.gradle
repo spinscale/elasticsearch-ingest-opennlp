@@ -19,6 +19,12 @@ import de.undercouch.gradle.tasks.download.Download
 group = 'de.spinscale.elasticsearch.ingest'
 version = '0.0.1-SNAPSHOT'
 
+// remove me again when removed from es core
+// https://github.com/elastic/elasticsearch/pull/18955
+if (GradleVersion.current() != GradleVersion.version('2.13')) {
+  throw new GradleException('Gradle 2.13 is required to build elasticsearch')
+}
+
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'com.bmuschko.nexus'
