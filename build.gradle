@@ -81,14 +81,15 @@ project.afterEvaluate {
 
 // download the models but dont overwrite existing ones
 task downloadModels << {
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'src/test/resources/models', 'en-ner-persons.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'src/test/resources/models', 'en-ner-locations.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'src/test/resources/models', 'en-ner-dates.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'en-ner-persons.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'en-ner-locations.bin')
+  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'en-ner-dates.bin')
 }
 
-def downloadIfNotExists(String url, String dir, String file) {
+def downloadIfNotExists(String url, String file) {
+  String dir = 'src' + File.separator + 'test' + File.separator + 'resources' + File.separator + 'models'
   new File(dir).mkdirs()
-  if (new File(dir + '/' + file).exists() == false) {
+  if (new File(dir + File.separator + file).exists() == false) {
     download {
       src url
       dest new File(dir, file)
