@@ -19,11 +19,10 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.ingest.AbstractProcessor;
-import org.elasticsearch.ingest.AbstractProcessorFactory;
 import org.elasticsearch.ingest.IngestDocument;
+import org.elasticsearch.ingest.Processor;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,7 +72,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
         return TYPE;
     }
 
-    public static final class Factory extends AbstractProcessorFactory<OpenNlpProcessor> {
+    public static final class Factory implements Processor.Factory {
 
         private OpenNlpService openNlpService;
 
@@ -82,7 +81,8 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
 
         @Override
-        public OpenNlpProcessor doCreate(String processorTag, Map<String, Object> config) throws Exception {
+        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config)
+                throws Exception {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
             List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
@@ -91,7 +91,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
     }
 
-    private static void mergeExisting(Map<String,Set<String>> entities, IngestDocument ingestDocument, String targetField) {
+    private static void mergeExisting(Map<String, Set<String>> entities, IngestDocument ingestDocument, String targetField) {
         if (ingestDocument.hasField(targetField)) {
             @SuppressWarnings("unchecked")
             Map<String, Set<String>> existing = ingestDocument.getFieldValue(targetField, Map.class);
@@ -101,7 +101,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
     }
 
-    private static void merge(Map<String,Set<String>> map, String key, Set<String> values) {
+    private static void merge(Map<String, Set<String>> map, String key, Set<String> values) {
         if (values.size() == 0) return;
 
         if (map.containsKey(key))

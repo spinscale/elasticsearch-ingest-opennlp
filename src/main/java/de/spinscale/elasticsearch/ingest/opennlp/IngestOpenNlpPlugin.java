@@ -19,17 +19,19 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.NodeModule;
+import org.elasticsearch.ingest.Processor;
+import org.elasticsearch.plugins.IngestPlugin;
 import org.elasticsearch.plugins.Plugin;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.elasticsearch.common.settings.Setting.groupSetting;
 
-public class IngestOpenNlpPlugin extends Plugin {
+public class IngestOpenNlpPlugin extends Plugin implements IngestPlugin {
 
     public static final Setting<Settings> MODEL_FILE_SETTINGS = groupSetting("ingest.opennlp.model.file.", Setting.Property.NodeScope);
 
@@ -38,12 +40,12 @@ public class IngestOpenNlpPlugin extends Plugin {
         return Arrays.asList(MODEL_FILE_SETTINGS);
     }
 
-    public void onModule(NodeModule nodeModule) throws IOException {
-        Path configDirectory = nodeModule.getNode().getEnvironment().configFile().resolve("ingest-opennlp");
-
-        OpenNlpService openNlpService = new OpenNlpService(configDirectory, nodeModule.getNode().settings());
+    @Override
+    public Map<String, Processor.Factory> getProcessors(Processor.Parameters parameters) {
+        Path configDirectory = parameters.env.configFile().resolve("ingest-opennlp");
+        OpenNlpService openNlpService = new OpenNlpService(configDirectory, parameters.env.settings());
         openNlpService.start();
 
-        nodeModule.registerProcessor(OpenNlpProcessor.TYPE, (registry) -> new OpenNlpProcessor.Factory(openNlpService));
+        return Collections.singletonMap(OpenNlpProcessor.TYPE, new OpenNlpProcessor.Factory(openNlpService));
     }
 }

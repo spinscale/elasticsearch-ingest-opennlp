@@ -19,13 +19,14 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.ingest.IngestDocument;
+import org.elasticsearch.ingest.Processor;
 import org.elasticsearch.ingest.RandomDocumentPicks;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.Before;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -101,7 +102,8 @@ public class OpenNlpProcessorTests extends ESTestCase {
         config.put("target_field", "target_field");
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
-        OpenNlpProcessor processor = factory.doCreate(randomAsciiOfLength(10), config);
+        Map<String, Processor.Factory> registry = Collections.emptyMap();
+        OpenNlpProcessor processor = factory.create(registry, randomAsciiOfLength(10), config);
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 

@@ -58,7 +58,7 @@ public class OpenNlpService {
         return IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap().keySet();
     }
 
-    protected OpenNlpService start() throws IOException {
+    protected OpenNlpService start() {
         StopWatch sw = new StopWatch("models-loading");
         Map<String, String> settingsMap = IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap();
         for (Map.Entry<String, String> entry : settingsMap.entrySet()) {
@@ -67,6 +67,8 @@ public class OpenNlpService {
             Path path = configDirectory.resolve(entry.getValue());
             try (InputStream is = Files.newInputStream(path)) {
                 nameFinderModels.put(name, new TokenNameFinderModel(is));
+            } catch (IOException e) {
+                logger.error("Could not load model [{}] with path [{}]", e, name, path);
             }
             sw.stop();
         }
