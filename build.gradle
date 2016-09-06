@@ -50,7 +50,7 @@ bundlePlugin {
 
 integTest {
   cluster {
-    setting 'ingest.opennlp.model.file.names',     'en-ner-person.bin'
+    setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
     setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
     setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
   }

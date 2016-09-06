@@ -42,9 +42,9 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
     public void setUp() throws Exception {
         super.setUp();
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
+                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
                 .build();
-        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings).start();
+        service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
         executorService = Executors.newFixedThreadPool(10);
     }
 

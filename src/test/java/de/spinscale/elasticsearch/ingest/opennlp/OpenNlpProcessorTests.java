@@ -44,12 +44,12 @@ public class OpenNlpProcessorTests extends ESTestCase {
     @Before
     public void createOpenNlpService() throws IOException {
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.names", "en-ner-person.bin")
-                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
-                .put("ingest.opennlp.model.file.dates", "en-ner-date.bin")
+                .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
+                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.dates", "en-ner-dates.bin")
                 .build();
 
-        service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings).start();
+        service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
     }
 
     public void testThatExtractionsWork() throws Exception {

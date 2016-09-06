@@ -36,11 +36,11 @@ public class OpenNlpServiceTests extends ESTestCase {
 
     public void testThatModelsCanBeLoaded() throws IOException, URISyntaxException {
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.names", "en-ner-person.bin")
-                .put("ingest.opennlp.model.file.locations", "en-ner-location.bin")
-                .put("ingest.opennlp.model.file.dates", "en-ner-date.bin")
+                .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
+                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.dates", "en-ner-dates.bin")
                 .build();
-        OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-person.bin").getParent(), settings);
+        OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings);
         service.start();
 
         Set<String> names = service.find("Kobe Bryant was one of the best basketball players of all time.", "names");
