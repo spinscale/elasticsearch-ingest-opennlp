@@ -21,9 +21,9 @@ import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
-import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.set.Sets;
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OpenNlpService {
 
     private final Path configDirectory;
-    private final ESLogger logger;
+    private final Logger logger;
     private Settings settings;
 
     private ThreadLocal<TokenNameFinderModel> threadLocal = new ThreadLocal<>();
