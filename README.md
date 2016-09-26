@@ -2,13 +2,23 @@
 
 I wrote a [opennlp mapping plugin](https://github.com/spinscale/elasticsearch-opennlp-plugin) a couple of years ago and people asked me, why I did not update it. The main reason was, that it was a bad architectural choice as mentioned in the [openlp plugin README](https://github.com/spinscale/elasticsearch-opennlp-plugin#elasticsearch-opennlp-plugin). With the introduction of ingest processors in Elasticsearch 5.0 this problem has been resolved.
 
-This processor is doing named/date/location entity recognition and stores the output in the JSON before it is being stored.
+This processor is doing named/date/location/'whatever you have a model for' entity recognition and stores the output in the JSON before it is being stored.
 
 This plugin is also intended to show you, that using gradle as a build system makes it very easy to reuse the testing facilities that elasticsearch already provides. First, you can run regular tests, but by adding a rest test, the plugin will be packaged and unzipped against elasticsearch, allowing you to execute a real end-to-end test, by just adding a java test class.
 
 ## Usage
 
 This is how you configure a pipeline with support for opennlp
+
+You can add the following lines to the `config/elasticsearch.yml` (as those models are shipped by default, they are easy to enable). The models are looked up in the `config/ingest-opennlp/` directory.
+
+```
+ingest.opennlp.model.file.names: en-ner-names.bin
+ingest.opennlp.model.file.dates: en-ner-dates.bin
+ingest.opennlp.model.file.locations: en-ner-locations.bin
+```
+
+Now fire up Elasticsearch and configure a pipeline
 
 ```
 PUT _ingest/pipeline/opennlp-pipeline
@@ -57,8 +67,6 @@ PUT _ingest/pipeline/opennlp-pipeline
 }
 ```
 
-Valid values are `names`, `dates` and `locations`.
-
 ## Configuration
 
 You can configure own models per field, the setting for this is prefixed `ingest.opennlp.model.file.`. So you can configure any model with any field name, by specifying a name and a path to file, like the three examples below:
@@ -67,8 +75,8 @@ You can configure own models per field, the setting for this is prefixed `ingest
 | --- | --- |
 | ingest.opennlp.model.file.name     | Configure the file for named entity recognition for the field name    |
 | ingest.opennlp.model.file.date     | Configure the file for date entity recognition for the field date     |
-
-By default the fields `name`, `date`, `location` are configured with the respective models.
+| ingest.opennlp.model.file.person   | Configure the file for person entity recognition for the field date     |
+| ingest.opennlp.model.file.WHATEVER | Configure the file for WHATEVER entity recognition for the field date     |
 
 ## Setup
 
