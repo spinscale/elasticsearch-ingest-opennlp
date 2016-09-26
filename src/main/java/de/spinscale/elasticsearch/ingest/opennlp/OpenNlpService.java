@@ -22,6 +22,8 @@ import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
 import org.elasticsearch.common.logging.Loggers;
@@ -68,12 +70,16 @@ public class OpenNlpService {
             try (InputStream is = Files.newInputStream(path)) {
                 nameFinderModels.put(name, new TokenNameFinderModel(is));
             } catch (IOException e) {
-                logger.error("Could not load model [{}] with path [{}]", e, name, path);
+                logger.error((Supplier<?>) () -> new ParameterizedMessage("Could not load model [{}] with path [{}]", name, path), e);
             }
             sw.stop();
         }
 
-        logger.info("Read models in [{}] for {}", sw.totalTime(), settingsMap.keySet());
+        if (settingsMap.keySet().size() == 0) {
+            logger.error("Did not load any models for ingest-opennlp plugin, none configured");
+        } else {
+            logger.info("Read models in [{}] for {}", sw.totalTime(), settingsMap.keySet());
+        }
 
         return this;
     }

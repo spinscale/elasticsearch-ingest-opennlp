@@ -17,6 +17,8 @@
 
 package de.spinscale.elasticsearch.ingest.opennlp;
 
+import org.apache.logging.log4j.message.ParameterizedMessage;
+import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.After;
@@ -95,7 +97,7 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
                     result = locations.stream().findFirst().get();
                 }
             } catch (Exception e) {
-                logger.error("Unexpected exception", e);
+                logger.error((Supplier<?>) () -> new ParameterizedMessage("Unexpected exception"), e);
             } finally {
                 latch.countDown();
             }
