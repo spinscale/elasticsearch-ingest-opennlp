@@ -17,8 +17,8 @@ plugins {
 
 import de.undercouch.gradle.tasks.download.Download
 
-group = 'de.spinscale.elasticsearch.ingest'
-version = '5.1.1.1-SNAPSHOT'
+group = 'de.spinscale.elasticsearch.plugin.ingest'
+version = '5.1.1.1'
 
 // remove me again when removed from es core
 // https://github.com/elastic/elasticsearch/pull/18955
