@@ -108,6 +108,10 @@ signing {
     sign configurations.archives
 }
 
+nexusStaging {
+  packageGroup = "de.spinscale"
+}
+
 uploadArchives {
   repositories {
     mavenDeployer {

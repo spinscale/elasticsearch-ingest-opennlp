@@ -6,6 +6,11 @@ This processor is doing named/date/location/'whatever you have a model for' enti
 
 This plugin is also intended to show you, that using gradle as a build system makes it very easy to reuse the testing facilities that elasticsearch already provides. First, you can run regular tests, but by adding a rest test, the plugin will be packaged and unzipped against elasticsearch, allowing you to execute a real end-to-end test, by just adding a java test class.
 
+## Installation
+
+| ES | Command |
+| 5.1.1 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.1.1/ingest-opennlp-5.1.1.1.zip` |
+
 ## Usage
 
 This is how you configure a pipeline with support for opennlp
@@ -13,7 +18,7 @@ This is how you configure a pipeline with support for opennlp
 You can add the following lines to the `config/elasticsearch.yml` (as those models are shipped by default, they are easy to enable). The models are looked up in the `config/ingest-opennlp/` directory.
 
 ```
-ingest.opennlp.model.file.names: en-ner-names.bin
+ingest.opennlp.model.file.persons: en-ner-persons.bin
 ingest.opennlp.model.file.dates: en-ner-dates.bin
 ingest.opennlp.model.file.locations: en-ner-locations.bin
 ```
