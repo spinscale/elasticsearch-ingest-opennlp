@@ -8,7 +8,8 @@ This plugin is also intended to show you, that using gradle as a build system ma
 
 ## Installation
 
-| ES | Command |
+| ES    | Command |
+| ----- | ------- |
 | 5.1.1 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.1.1/ingest-opennlp-5.1.1.1.zip` |
 
 ## Usage
