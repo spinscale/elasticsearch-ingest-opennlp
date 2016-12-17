@@ -7,6 +7,7 @@ buildscript {
 
   dependencies {
     classpath "org.elasticsearch.gradle:build-tools:5.1.1"
+    classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
   }
 }
 
@@ -30,6 +31,7 @@ apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'idea'
 apply plugin: 'maven'
 apply plugin: 'signing'
+apply plugin: 'io.codearte.nexus-staging'
 
 esplugin {
   name 'ingest-opennlp'
