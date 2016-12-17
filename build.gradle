@@ -17,7 +17,7 @@ plugins {
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.ingest'
-version = '0.0.1-SNAPSHOT'
+version = '5.1.1.1-SNAPSHOT'
 
 // remove me again when removed from es core
 // https://github.com/elastic/elasticsearch/pull/18955
@@ -28,6 +28,8 @@ if (GradleVersion.current() != GradleVersion.version('2.13')) {
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 esplugin {
   name 'ingest-opennlp'
@@ -92,6 +94,59 @@ def downloadIfNotExists(String url, String file) {
     download {
       src url
       dest new File(dir, file)
+    }
+  }
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: ossrhUsername, password: ossrhPassword)
+      }
+
+      pom.project {
+        name 'Elasticsearch Ingest OpenNLP Detection Plugin'
+        packaging 'zip'
+        artifactId 'ingest-opennlp'
+        description 'Ingest processor that uses OpenNLP for named entity extraction'
+        url 'https://github.com/spinscale/elasticsearch-ingest-opennlp'
+
+        scm {
+          connection 'scm:git:https://github.com/spinscale/elasticsearch-ingest-opennlp'
+          developerConnection 'scm:git:git@github.com:spinscale/elasticsearch-ingest-opennlp.git'
+          url 'https://github.com/spinscale/elasticsearch-ingest-opennlp'
+        }
+
+        licenses {
+          license {
+            name 'The Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'spinscale'
+            name 'Alexander Reelsen'
+            email 'alr@spinscale.de'
+          }
+        }
+      }
     }
   }
 }
