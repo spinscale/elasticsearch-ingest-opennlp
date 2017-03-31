@@ -82,7 +82,7 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
         private CountDownLatch latch;
         String result;
 
-        public OpennlpRunnable(int idx, String city, CountDownLatch latch) {
+        OpennlpRunnable(int idx, String city, CountDownLatch latch) {
             this.idx = idx;
             this.city = city;
             this.latch = latch;
