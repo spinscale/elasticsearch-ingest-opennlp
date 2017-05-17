@@ -6,7 +6,7 @@ buildscript {
  }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:5.3.1"
+    classpath "org.elasticsearch.gradle:build-tools:5.4.0"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
   }
 }
@@ -18,13 +18,7 @@ plugins {
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
-version = '5.3.1.1-SNAPSHOT'
-
-// remove me again when removed from es core
-// https://github.com/elastic/elasticsearch/pull/18955
-if (GradleVersion.current() != GradleVersion.version('2.13')) {
-  throw new GradleException('Gradle 2.13 is required to build elasticsearch')
-}
+version = '5.4.0.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'

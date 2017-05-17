@@ -53,7 +53,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatExtractionsWork() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
@@ -64,7 +64,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatFieldsCanBeExcluded() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("dates")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
@@ -75,7 +75,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAsciiOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         IngestDocument ingestDocument = getIngestDocument();
@@ -103,7 +103,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAsciiOfLength(10), config);
+        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
