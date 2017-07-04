@@ -6,7 +6,7 @@ buildscript {
  }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:5.4.1"
+    classpath "org.elasticsearch.gradle:build-tools:5.4.2"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
   }
 }
@@ -18,7 +18,7 @@ plugins {
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
-version = '5.4.1.1-SNAPSHOT'
+version = '5.4.2.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'
