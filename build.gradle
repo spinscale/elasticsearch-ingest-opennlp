@@ -75,10 +75,12 @@ project.afterEvaluate {
 }
 
 // download the models but dont overwrite existing ones
-task downloadModels << {
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'en-ner-persons.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'en-ner-locations.bin')
-  downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'en-ner-dates.bin')
+task downloadModels {
+  doLast {
+    downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin',   'en-ner-persons.bin')
+    downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin', 'en-ner-locations.bin')
+    downloadIfNotExists('http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin',     'en-ner-dates.bin')
+  }
 }
 
 def downloadIfNotExists(String url, String file) {
