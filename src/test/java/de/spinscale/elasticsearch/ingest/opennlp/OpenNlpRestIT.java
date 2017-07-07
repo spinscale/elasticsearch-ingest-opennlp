@@ -22,8 +22,6 @@ import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 import org.elasticsearch.test.rest.yaml.ClientYamlTestCandidate;
 import org.elasticsearch.test.rest.yaml.ESClientYamlSuiteTestCase;
 
-import java.io.IOException;
-
 public class OpenNlpRestIT extends ESClientYamlSuiteTestCase {
 
     public OpenNlpRestIT(@Name("yaml") ClientYamlTestCandidate testCandidate) {
@@ -31,7 +29,7 @@ public class OpenNlpRestIT extends ESClientYamlSuiteTestCase {
     }
 
     @ParametersFactory
-    public static Iterable<Object[]> parameters() throws IOException {
+    public static Iterable<Object[]> parameters() throws Exception {
         return ESClientYamlSuiteTestCase.createParameters();
     }
 }
