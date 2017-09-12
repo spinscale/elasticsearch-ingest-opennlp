@@ -1,0 +1,4 @@
+Alexaner Reelsen
+Copyright 2016-2017 Alexander Reelsen
+
+The models have been downloaded from http://opennlp.sourceforge.net/models-1.5/

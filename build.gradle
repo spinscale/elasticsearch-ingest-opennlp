@@ -6,7 +6,7 @@ buildscript {
  }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:5.5.2"
+    classpath "org.elasticsearch.gradle:build-tools:5.6.0"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
   }
 }
@@ -18,7 +18,7 @@ plugins {
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
-version = '5.5.2.1-SNAPSHOT'
+version = '5.6.0.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'
@@ -27,7 +27,19 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'io.codearte.nexus-staging'
 
+// this is temporal and will be fixed in 6.0
+ext.projectSubstitutions = [:]
+
+// license of this project
+licenseFile = rootProject.file('LICENSE.txt')
+// copyright notices
+noticeFile = rootProject.file('NOTICE.txt')
+
 esplugin {
+  // license of the plugin, may be different than the above license
+  licenseFile rootProject.file('LICENSE.txt')
+  // copyright notices, may be different than the above notice
+  noticeFile rootProject.file('NOTICE.txt')
   name 'ingest-opennlp'
   description 'Ingest processor that uses OpenNLP for named entity extraction'
   classname 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
