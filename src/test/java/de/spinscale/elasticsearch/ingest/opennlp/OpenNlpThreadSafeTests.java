@@ -19,14 +19,18 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
+import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.After;
 import org.junit.Before;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -43,8 +47,12 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
     @Before
     public void setUp() throws Exception {
         super.setUp();
+
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.ner.names", "en-ner-persons.bin")
+                .put("ingest.opennlp.model.file.ner.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.ner.dates", "en-ner-dates.bin")
+                .put("ingest.opennlp.model.file.pos", "en-pos-maxent.bin")
                 .build();
         service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
         executorService = Executors.newFixedThreadPool(10);
@@ -58,31 +66,51 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
 
     public void testThatOpenNlpServiceIsThreadSafe() throws Exception {
         int runs = 1000;
-        CountDownLatch latch = new CountDownLatch(runs);
+        CountDownLatch latch = new CountDownLatch(2*runs);
         List<OpennlpRunnable> runnables = new ArrayList<>();
 
         for (int i = 0; i < runs; i++) {
             String city = randomFrom("Munich", "Stockholm", "Madrid", "San Francisco", "Cologne", "Paris", "London", "Amsterdam");
 
-            OpennlpRunnable runnable = new OpennlpRunnable(i, city, latch);
+            OpennlpNerRunnable runnable = new OpennlpNerRunnable(i, city, latch);
             runnables.add(runnable);
             executorService.submit(runnable);
         }
 
-        latch.await(30, TimeUnit.SECONDS);
+        for (int i = 0; i < runs; i++) {
+            String[] cities = randomFrom(
+                    new String[]{"Munich"},
+                    new String[]{"Munich", "Stockholm"},
+                    new String[]{"Munich", "Stockholm", "Madrid"},
+                    new String[]{"Munich", "Stockholm", "Madrid", "Miami"},
+                    new String[]{"Munich", "Stockholm", "Madrid", "Miami", "Cologne"},
+                    new String[]{"Munich", "Stockholm", "Madrid", "Miami", "Cologne", "Paris"},
+                    new String[]{"Munich", "Stockholm", "Madrid", "Miami", "Cologne", "Paris", "London"},
+                    new String[]{"Munich", "Stockholm", "Madrid", "Miami", "Cologne", "Paris", "London", "Amsterdam"});
+
+            OpennlpPosRunnable runnable = new OpennlpPosRunnable(i, cities, latch);
+            runnables.add(runnable);
+            executorService.submit(runnable);
+        }
+
+        latch.await(60, TimeUnit.SECONDS);
         for (OpennlpRunnable runnable : runnables) {
             runnable.assertResultIsCorrect();
         }
     }
 
-    private class OpennlpRunnable implements Runnable {
+    interface OpennlpRunnable extends Runnable {
+        void assertResultIsCorrect();
+    }
+
+    private class OpennlpNerRunnable implements OpennlpRunnable {
 
         private int idx;
         final String city;
         private CountDownLatch latch;
         String result;
 
-        OpennlpRunnable(int idx, String city, CountDownLatch latch) {
+        OpennlpNerRunnable(int idx, String city, CountDownLatch latch) {
             this.idx = idx;
             this.city = city;
             this.latch = latch;
@@ -103,8 +131,45 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
             }
         }
 
-        private void assertResultIsCorrect() {
+        @Override
+        public void assertResultIsCorrect() {
             assertThat(String.format(Locale.ROOT, "Expected task %s to have result %s", idx, city), result, is(city));
+        }
+    }
+
+    private class OpennlpPosRunnable implements OpennlpRunnable {
+
+        private int idx;
+        final String[] cities;
+        private CountDownLatch latch;
+        int result;
+
+        OpennlpPosRunnable(int idx, String[] cities, CountDownLatch latch) {
+            this.idx = idx;
+            this.cities = cities;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Map<String, Number> tags = service.countTags(
+                        String.join(", ", cities) + (cities.length > 1 ? " are " : " is ") + "really awesome",
+                        new HashSet<>(Arrays.asList("NNP")), false);
+
+                if (tags.containsKey("NNP")) {
+                    result = tags.get("NNP").intValue();
+                }
+            } catch (Exception e) {
+                logger.error((Supplier<?>) () -> new ParameterizedMessage("Unexpected exception"), e);
+            } finally {
+                latch.countDown();
+            }
+        }
+
+        @Override
+        public void assertResultIsCorrect() {
+            assertThat(String.format(Locale.ROOT, "Expected task %s to have result %s", idx, cities.length), result, is(cities.length));
         }
     }
 }

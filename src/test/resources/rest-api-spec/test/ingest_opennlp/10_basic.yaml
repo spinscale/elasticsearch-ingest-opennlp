@@ -7,5 +7,6 @@
     - do:
         nodes.info: {}
 
-    - match:  { nodes.$master.plugins.0.name: ingest-opennlp }
-    - match:  { nodes.$master.ingest.processors.0.type: opennlp }
+    - match:  { nodes.$master.ingest.processors.0.type: opennlp_ner }
+    - match:  { nodes.$master.ingest.processors.1.type: opennlp_pos }
+

@@ -1,0 +1,85 @@
+---
+"Test opennlp part of speech tagging processor with defaults":
+  - do:
+      ingest.put_pipeline:
+        id: "my_pipeline"
+        body:  >
+          {
+            "description": "_description",
+            "processors": [
+              {
+                "opennlp_pos" : {
+                  "field" : "field1"
+                }
+              }
+            ]
+          }
+  - match: { acknowledged: true }
+
+  - do:
+      index:
+        index: test
+        type: test
+        id: 1
+        pipeline: "my_pipeline"
+        body: {field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."}
+
+  - do:
+      get:
+        index: test
+        type: test
+        id: 1
+  - match: { _source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
+  - length: { _source.tags: 14 }
+  - match: { _source.tags.CC: 1 }
+  - match: { _source.tags.CD: 3 }
+  - match: { _source.tags.DT: 5 }
+  - match: { _source.tags.IN: 4 }
+  - match: { _source.tags.JJ: 1 }
+  - match: { _source.tags.JJS: 2 }
+  - match: { _source.tags.NN: 6 }
+  - match: { _source.tags.NNP: 7 }
+  - match: { _source.tags.NNS: 3 }
+  - match: { _source.tags.PUNCT: 5 }
+  - match: { _source.tags.RB: 6 }
+  - match: { _source.tags.VBD: 1 }
+  - match: { _source.tags.VBN: 2 }
+  - match: { _source.tags.VBZ: 4 }
+
+---
+"Test limiting certain tags works":
+  - do:
+      ingest.put_pipeline:
+        id: "my_pipeline"
+        body:  >
+          {
+            "description": "_description",
+            "processors": [
+              {
+                "opennlp_pos" : {
+                  "field" : "field1",
+                  "tags": [ "NN", "VBZ" ]
+                }
+              }
+            ]
+          }
+  - match: { acknowledged: true }
+
+  - do:
+      index:
+        index: test
+        type: test
+        id: 1
+        pipeline: "my_pipeline"
+        body: {field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."}
+
+  - do:
+      get:
+        index: test
+        type: test
+        id: 1
+  - match: { _source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
+  - length: { _source.tags: 2 }
+  - match: { _source.tags.NN: 6 }
+  - match: { _source.tags.VBZ: 4 }
+

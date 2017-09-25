@@ -37,23 +37,23 @@ import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 
-public class OpenNlpProcessorTests extends ESTestCase {
+public class OpenNlpNerProcessorTests extends ESTestCase {
 
     private OpenNlpService service;
 
     @Before
     public void createOpenNlpService() throws IOException {
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
-                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
-                .put("ingest.opennlp.model.file.dates", "en-ner-dates.bin")
+                .put("ingest.opennlp.model.file.ner.names", "en-ner-persons.bin")
+                .put("ingest.opennlp.model.file.ner.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.ner.dates", "en-ner-dates.bin")
                 .build();
 
         service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
     }
 
     public void testThatExtractionsWork() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpNerProcessor processor = new OpenNlpNerProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
@@ -64,7 +64,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatFieldsCanBeExcluded() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpNerProcessor processor = new OpenNlpNerProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("dates")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
@@ -75,7 +75,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpNerProcessor processor = new OpenNlpNerProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
                 new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         IngestDocument ingestDocument = getIngestDocument();
@@ -101,9 +101,9 @@ public class OpenNlpProcessorTests extends ESTestCase {
         config.put("field", "source_field");
         config.put("target_field", "target_field");
 
-        OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
+        OpenNlpNerProcessor.Factory factory = new OpenNlpNerProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
+        OpenNlpNerProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -113,7 +113,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     }
 
-    private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
+    private Map<String, Object> getIngestDocumentData(OpenNlpNerProcessor processor) throws Exception {
         IngestDocument ingestDocument = getIngestDocument();
         processor.execute(ingestDocument);
         return getIngestDocumentData(ingestDocument);

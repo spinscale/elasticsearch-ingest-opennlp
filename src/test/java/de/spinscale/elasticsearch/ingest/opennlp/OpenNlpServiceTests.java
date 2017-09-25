@@ -22,10 +22,13 @@ import org.elasticsearch.test.ESTestCase;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 
 /*
@@ -36,9 +39,10 @@ public class OpenNlpServiceTests extends ESTestCase {
 
     public void testThatModelsCanBeLoaded() throws IOException, URISyntaxException {
         Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
-                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
-                .put("ingest.opennlp.model.file.dates", "en-ner-dates.bin")
+                .put("ingest.opennlp.model.file.ner.names", "en-ner-persons.bin")
+                .put("ingest.opennlp.model.file.ner.locations", "en-ner-locations.bin")
+                .put("ingest.opennlp.model.file.ner.dates", "en-ner-dates.bin")
+                .put("ingest.opennlp.model.file.pos", "en-pos-maxent.bin")
                 .build();
         OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings);
         service.start();
@@ -54,5 +58,10 @@ public class OpenNlpServiceTests extends ESTestCase {
         Set<String> dates = service.find("Yesterday has been the hottest day of the year.", "dates");
         assertThat(dates, hasSize(1));
         assertThat(dates, contains("Yesterday"));
+
+        Map<String, Number> stats = service.countTags("Kobe Bryant was one of the best basketball players of all time.", null, false);
+        assertThat(stats.keySet(), hasSize(9));
+        assertThat(stats, hasKey("NN"));
+        assertThat(stats.get("NN").intValue(), comparesEqualTo(2));
     }
 }

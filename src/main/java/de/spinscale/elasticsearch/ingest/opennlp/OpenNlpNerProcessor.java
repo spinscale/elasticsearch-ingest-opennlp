@@ -32,18 +32,18 @@ import java.util.Set;
 import static org.elasticsearch.ingest.ConfigurationUtils.readOptionalList;
 import static org.elasticsearch.ingest.ConfigurationUtils.readStringProperty;
 
-public class OpenNlpProcessor extends AbstractProcessor {
+public class OpenNlpNerProcessor extends AbstractProcessor {
 
-    public static final String TYPE = "opennlp";
+    public static final String TYPE = "opennlp_ner";
 
     private final OpenNlpService openNlpService;
     private final String sourceField;
     private final String targetField;
     private final Set<String> fields;
 
-    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, Set<String> fields) throws
-            IOException {
-        super(tag);
+    OpenNlpNerProcessor(OpenNlpService openNlpService, String processorTag, String sourceField, String targetField,
+                        Set<String> fields) throws IOException {
+        super(processorTag);
         this.openNlpService = openNlpService;
         this.sourceField = sourceField;
         this.targetField = targetField;
@@ -81,13 +81,15 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
 
         @Override
-        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config)
+        public OpenNlpNerProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config)
                 throws Exception {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
             List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
-            final Set<String> foundFields = fields == null || fields.size() == 0 ? openNlpService.getModels() : new HashSet<>(fields);
-            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, foundFields);
+            @SuppressWarnings("unchecked")
+            final Set<String> foundFields = fields == null || fields.size() == 0 ?
+                    ((Map)openNlpService.getModels().get("ner")).keySet() : new HashSet<>(fields);
+            return new OpenNlpNerProcessor(openNlpService, processorTag, field, targetField, foundFields);
         }
     }
 

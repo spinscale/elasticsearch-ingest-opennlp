@@ -1,5 +1,5 @@
 ---
-"Test opennlp processor with defaults":
+"Test opennlp named entity extraction processor with defaults":
   - do:
       ingest.put_pipeline:
         id: "my_pipeline"
@@ -8,7 +8,7 @@
             "description": "_description",
             "processors": [
               {
-                "opennlp" : {
+                "opennlp_ner" : {
                   "field" : "field1"
                 }
               }
@@ -45,7 +45,7 @@
             "description": "_description",
             "processors": [
               {
-                "opennlp" : {
+                "opennlp_ner" : {
                   "field" : "field1",
                   "fields": [ "locations" ]
                 }

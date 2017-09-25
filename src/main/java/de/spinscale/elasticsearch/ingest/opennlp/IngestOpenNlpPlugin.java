@@ -26,6 +26,7 @@ import org.elasticsearch.plugins.Plugin;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,9 @@ public class IngestOpenNlpPlugin extends Plugin implements IngestPlugin {
         OpenNlpService openNlpService = new OpenNlpService(configDirectory, parameters.env.settings());
         openNlpService.start();
 
-        return Collections.singletonMap(OpenNlpProcessor.TYPE, new OpenNlpProcessor.Factory(openNlpService));
+        Map<String, Processor.Factory> processors = new HashMap<>();
+        processors.put(OpenNlpNerProcessor.TYPE, new OpenNlpNerProcessor.Factory(openNlpService));
+        processors.put(OpenNlpPosProcessor.TYPE, new OpenNlpPosProcessor.Factory(openNlpService));
+        return Collections.unmodifiableMap(processors);
     }
 }
