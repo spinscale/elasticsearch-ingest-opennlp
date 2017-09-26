@@ -1,15 +1,10 @@
 # Elasticsearch OpenNLP Ingest Processors
 
-I wrote a [opennlp mapping plugin](https://github.com/spinscale/elasticsearch-opennlp-plugin) a couple of years ago and people asked me, why I did not update it. The main reason was, that it was a bad architectural choice as mentioned in the [openlp plugin README](https://github.com/spinscale/elasticsearch-opennlp-plugin#elasticsearch-opennlp-plugin). With the introduction of ingest processors in Elasticsearch 5.0 this problem has been resolved.
+This is a fork from the [Elasticsearch OpenNLP Ingest Processor](https://github.com/spinscale/elasticsearch-ingest-opennlp) written by spinscale.
 
-The OpenNLP ingest processors are:
-* Doing name/date/location/'whatever you have a model for' entity recognition
-* Counting the different parts of speech tags
+In addition to the original processor doing name/date/location/'whatever you have a model for' entity recognition, it adds a new processor for counting the different part of speech tags in the ingested document. Both processors save the output in the JSON before it is being stored.
 
-The processor also save the output in the JSON before it is being stored.
-
-This plugin is also intended to show you, that using gradle as a build system makes it very easy to reuse the testing facilities that elasticsearch already provides. First, you can run regular tests, but by adding a rest test, the plugin will be packaged and unzipped against elasticsearch, allowing you to execute a real end-to-end test, by just adding a java test class.
-
+<!---
 ## Installation
 
 | ES    | Command |
@@ -17,10 +12,10 @@ This plugin is also intended to show you, that using gradle as a build system ma
 | 5.2.0 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.2.0.1/ingest-opennlp-5.2.0.1.zip` |
 | 5.1.2 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.2.1/ingest-opennlp-5.1.2.1.zip` |
 | 5.1.1 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.1.1/ingest-opennlp-5.1.1.1.zip` |
-
+-->
 ## Usage
 
-The opennlp plugin provides two processors, opennlp_ner for doing named entity recognition and opennlp_pos for counting the part of speech tags.
+The plugin provides two processors, opennlp_ner for doing named entity recognition and opennlp_pos for counting the part of speech tags.
 
 ### opennlp_ner
 
