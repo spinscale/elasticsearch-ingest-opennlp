@@ -51,7 +51,6 @@ public class OpenNlpService {
     private final Logger logger;
     private Settings settings;
 
-    private ThreadLocal<TokenNameFinderModel> nameFinderLocal = new ThreadLocal<>();
     private Map<String, TokenNameFinderModel> nameFinderModels = new ConcurrentHashMap<>();
 
     private POSModel posModel = null;
@@ -115,28 +114,19 @@ public class OpenNlpService {
     }
 
     public Set<String> find(String content, String field) {
-        try {
-            if (!nameFinderModels.containsKey(field)) {
-                throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
-            }
-            TokenNameFinderModel finderModel = nameFinderModels.get(field);
-            if (nameFinderLocal.get() == null || !nameFinderLocal.get().equals(finderModel)) {
-                nameFinderLocal.set(finderModel);
-            }
-
-            String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
-            Span spans[] = new NameFinderME(finderModel).find(tokens);
-            String[] names = Span.spansToStrings(spans, tokens);
-            return Sets.newHashSet(names);
-        } finally {
-            nameFinderLocal.remove();
+        if (!nameFinderModels.containsKey(field)) {
+            throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
         }
+        TokenNameFinderModel finderModel = nameFinderModels.get(field);
+        String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
+        Span spans[] = new NameFinderME(finderModel).find(tokens);
+        String[] names = Span.spansToStrings(spans, tokens);
+        return Sets.newHashSet(names);
     }
 
     public Map<String, Number> countTags(String content, @Nullable Set<String> tagSet, boolean normalize) {
         Map<String, Number> map = new TreeMap<>();
         String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
-        // Avoid the use of a thread local by creating a new POSTaggerME from posModel
         String tags[] = new POSTaggerME(posModel).tag(tokens);
         for (int i = 0; i < tags.length; i++) {
             String tag = fixTag(tags[i]);
