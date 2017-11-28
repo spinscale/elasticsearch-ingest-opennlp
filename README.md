@@ -83,7 +83,7 @@ You can configure own models per field, the setting for this is prefixed `ingest
 | --- | --- |
 | ingest.opennlp.model.file.name     | Configure the file for named entity recognition for the field name        |
 | ingest.opennlp.model.file.date     | Configure the file for date entity recognition for the field date         |
-| ingest.opennlp.model.file.person   | Configure the file for person entity recognition for the field date       |
+| ingest.opennlp.model.file.person   | Configure the file for person entity recognition for the field person     |
 | ingest.opennlp.model.file.WHATEVER | Configure the file for WHATEVER entity recognition for the field WHATEVER |
 
 ## Setup
