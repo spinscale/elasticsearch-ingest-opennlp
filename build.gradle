@@ -6,7 +6,7 @@ buildscript {
  }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:6.0.0"
+    classpath "org.elasticsearch.gradle:build-tools:6.0.1"
     classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
   }
 }
