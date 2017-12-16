@@ -18,6 +18,7 @@
 package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.settings.Setting;
+import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.ingest.Processor;
 import org.elasticsearch.plugins.IngestPlugin;
@@ -33,7 +34,8 @@ import static org.elasticsearch.common.settings.Setting.groupSetting;
 
 public class IngestOpenNlpPlugin extends Plugin implements IngestPlugin {
 
-    public static final Setting<Settings> MODEL_FILE_SETTINGS = groupSetting("ingest.opennlp.model.file.", Setting.Property.NodeScope);
+    public static final Setting.AffixSetting<String> MODEL_FILE_SETTINGS =
+            Setting.prefixKeySetting("ingest.opennlp.model.file.", key -> Setting.simpleString(key, Property.NodeScope));
 
     @Override
     public List<Setting<?>> getSettings() {

@@ -57,12 +57,12 @@ public class OpenNlpService {
     }
 
     public Set<String> getModels() {
-        return IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap().keySet();
+        return IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.getAsMap(settings).keySet();
     }
 
     protected OpenNlpService start() {
         StopWatch sw = new StopWatch("models-loading");
-        Map<String, String> settingsMap = IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.get(settings).getAsMap();
+        Map<String, String> settingsMap = IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.getAsMap(settings);
         for (Map.Entry<String, String> entry : settingsMap.entrySet()) {
             String name = entry.getKey();
             sw.start(name);
