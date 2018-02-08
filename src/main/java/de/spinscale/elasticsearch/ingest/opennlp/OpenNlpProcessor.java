@@ -76,7 +76,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
 
         private OpenNlpService openNlpService;
 
-        public Factory(OpenNlpService openNlpService) {
+        Factory(OpenNlpService openNlpService) {
             this.openNlpService = openNlpService;
         }
 

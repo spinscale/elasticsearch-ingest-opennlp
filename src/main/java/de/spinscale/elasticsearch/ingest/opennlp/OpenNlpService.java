@@ -26,7 +26,7 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
-import org.elasticsearch.common.logging.Loggers;
+import org.elasticsearch.common.logging.ServerLoggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.set.Sets;
 
@@ -50,8 +50,8 @@ public class OpenNlpService {
     private ThreadLocal<TokenNameFinderModel> threadLocal = new ThreadLocal<>();
     private Map<String, TokenNameFinderModel> nameFinderModels = new ConcurrentHashMap<>();
 
-    public OpenNlpService(Path configDirectory, Settings settings) {
-        this.logger = Loggers.getLogger(getClass(), settings);
+    OpenNlpService(Path configDirectory, Settings settings) {
+        this.logger = ServerLoggers.getLogger(getClass(), settings);
         this.configDirectory = configDirectory;
         this.settings = settings;
     }
