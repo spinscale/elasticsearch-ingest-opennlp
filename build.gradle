@@ -65,7 +65,6 @@ githubRelease.doFirst {
     token = System.getProperty('GITHUB_TOKEN')
     tagName = currentVersion
     assets = [ filename ]
-    prerelease = true
   }
 }
 
