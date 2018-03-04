@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 buildscript {
   repositories {
     mavenLocal()
@@ -13,6 +15,7 @@ buildscript {
 
 plugins {
   id "de.undercouch.download" version "3.2.0"
+  id "co.riiid.gradle" version "0.4.2"
 }
 
 import de.undercouch.gradle.tasks.download.Download
@@ -23,9 +26,6 @@ version = '6.2.2.1-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'idea'
-apply plugin: 'maven'
-apply plugin: 'signing'
-apply plugin: 'io.codearte.nexus-staging'
 
 // license of this project
 licenseFile = rootProject.file('LICENSE.txt')
@@ -43,6 +43,30 @@ esplugin {
   name 'ingest-opennlp'
   description 'Ingest processor that uses OpenNLP for named entity extraction'
   classname 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
+}
+
+githubRelease.doFirst {
+  if (!System.getProperty('GITHUB_TOKEN', '')) {
+    throw new Exception('Missing property GITHUB_TOKEN')
+  }
+
+  // check if zip file is there
+  assert file("build/distributions/ingest-opennlp-${version}.zip").exists()
+
+  // rename zip file
+  def currentVersion = version.replace('-SNAPSHOT', '')
+  def filename = "build/distributions/ingest-opennlp-${currentVersion}.zip"
+  Files.copy(file("build/distributions/ingest-opennlp-${version}.zip").toPath(), file(filename).toPath())
+
+  // configuration
+  github {
+    owner = 'spinscale'
+    repo = 'elasticsearch-ingest-opennlp'
+    token = System.getProperty('GITHUB_TOKEN')
+    tagName = currentVersion
+    assets = [ filename ]
+    prerelease = true
+  }
 }
 
 // In this section you declare the dependencies for your production and test code
@@ -104,16 +128,4 @@ def downloadIfNotExists(String url, String file) {
       dest new File(dir, file)
     }
   }
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-signing {
-    sign configurations.archives
-}
-
-nexusStaging {
-  packageGroup = "de.spinscale"
 }
