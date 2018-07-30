@@ -10,6 +10,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 
 | ES    | Command |
 | ----- | ------- |
+| 6.3.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.3.2.1/ingest-opennlp-6.3.2.1.zip` |
 | 6.3.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.3.1.1/ingest-opennlp-6.3.1.1.zip` |
 | 6.3.0 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.3.0.1/ingest-opennlp-6.3.0.1.zip` |
 | 6.2.4 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.2.4.1/ingest-opennlp-6.2.4.1.zip` |
@@ -91,12 +92,12 @@ You can configure own models per field, the setting for this is prefixed `ingest
 | ingest.opennlp.model.file.person   | Configure the file for person entity recognition for the field person     |
 | ingest.opennlp.model.file.WHATEVER | Configure the file for WHATEVER entity recognition for the field WHATEVER |
 
-## Setup
+## Development setup & running tests
 
 In order to install this plugin, you need to create a zip distribution first by running
 
 ```bash
-gradle clean check
+./gradlew clean check
 ```
 
 This will produce a zip file in `build/distributions`. As part of the build, the models are packaged into the zip file, but need to be downloaded before. There is a special task in the `build.gradle` which is downloading the models, in case they dont exist.
@@ -104,7 +105,7 @@ This will produce a zip file in `build/distributions`. As part of the build, the
 After building the zip file, you can install it like this
 
 ```bash
-bin/plugin install file:///path/to/elasticsearch-ingest-opennlp/build/distribution/ingest-opennlp-0.0.1-SNAPSHOT.zip
+bin/plugin install file:///path/to/elasticsearch-ingest-opennlp/build/distribution/ingest-opennlp-X.Y.Z-SNAPSHOT.zip
 ```
 
 There is no need to configure anything, as the models art part of the zip file.
