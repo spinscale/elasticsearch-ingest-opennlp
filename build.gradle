@@ -8,7 +8,7 @@ buildscript {
  }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:6.3.2"
+    classpath "org.elasticsearch.gradle:build-tools:6.4.0"
   }
 }
 
@@ -20,10 +20,11 @@ plugins {
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
-version = '6.3.2.1-SNAPSHOT'
+version = '6.4.0.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'eclipse'
 apply plugin: 'elasticsearch.esplugin'
 
 // license of this project

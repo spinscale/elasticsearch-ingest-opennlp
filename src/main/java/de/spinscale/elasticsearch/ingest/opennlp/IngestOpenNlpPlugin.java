@@ -19,7 +19,6 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Setting.Property;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.ingest.Processor;
 import org.elasticsearch.plugins.IngestPlugin;
 import org.elasticsearch.plugins.Plugin;
@@ -29,8 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.elasticsearch.common.settings.Setting.groupSetting;
 
 public class IngestOpenNlpPlugin extends Plugin implements IngestPlugin {
 
