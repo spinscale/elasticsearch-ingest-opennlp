@@ -22,9 +22,10 @@ import org.elasticsearch.ingest.AbstractProcessor;
 import org.elasticsearch.ingest.IngestDocument;
 import org.elasticsearch.ingest.Processor;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,15 +35,14 @@ import static org.elasticsearch.ingest.ConfigurationUtils.readStringProperty;
 
 public class OpenNlpProcessor extends AbstractProcessor {
 
-    public static final String TYPE = "opennlp";
+    static final String TYPE = "opennlp";
 
     private final OpenNlpService openNlpService;
     private final String sourceField;
     private final String targetField;
     private final Set<String> fields;
 
-    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, Set<String> fields) throws
-            IOException {
+    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, Set<String> fields) {
         super(tag);
         this.openNlpService = openNlpService;
         this.sourceField = sourceField;
@@ -51,7 +51,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void execute(IngestDocument ingestDocument) throws Exception {
+    public void execute(IngestDocument ingestDocument) {
         String content = ingestDocument.getFieldValue(sourceField, String.class);
 
         if (Strings.hasLength(content)) {
@@ -63,7 +63,15 @@ public class OpenNlpProcessor extends AbstractProcessor {
                 merge(entities, field, data);
             }
 
-            ingestDocument.setFieldValue(targetField, entities);
+            // convert set to list, otherwise toXContent serialization in simulate pipeline fails
+            Map<String, List<String>> entitiesToStore = new HashMap<>();
+            Iterator<Map.Entry<String, Set<String>>> iterator = entities.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, Set<String>> entry = iterator.next();
+                entitiesToStore.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+            }
+
+            ingestDocument.setFieldValue(targetField, entitiesToStore);
         }
     }
 
@@ -81,8 +89,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
 
         @Override
-        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config)
-                throws Exception {
+        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config) {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
             List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
@@ -104,8 +111,9 @@ public class OpenNlpProcessor extends AbstractProcessor {
     private static void merge(Map<String, Set<String>> map, String key, Set<String> values) {
         if (values.size() == 0) return;
 
-        if (map.containsKey(key))
+        if (map.containsKey(key)) {
             values.addAll(map.get(key));
+        }
 
         map.put(key, values);
     }

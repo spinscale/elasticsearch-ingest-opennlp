@@ -17,39 +17,46 @@
 
 package de.spinscale.elasticsearch.ingest.opennlp;
 
+import org.elasticsearch.action.ingest.SimulateProcessorResult;
+import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.ingest.IngestDocument;
 import org.elasticsearch.ingest.Processor;
 import org.elasticsearch.ingest.RandomDocumentPicks;
 import org.elasticsearch.test.ESTestCase;
-import org.junit.Before;
+import org.junit.BeforeClass;
 
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 
 public class OpenNlpProcessorTests extends ESTestCase {
 
-    private OpenNlpService service;
+    private static OpenNlpService service;
 
-    @Before
-    public void createOpenNlpService() throws IOException {
+    @BeforeClass
+    public static void createOpenNlpService() throws Exception {
         Settings settings = Settings.builder()
                 .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
                 .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
                 .put("ingest.opennlp.model.file.dates", "en-ner-dates.bin")
                 .build();
 
-        service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
+        Path path = PathUtils.get(OpenNlpProcessorTests.class.getResource("/models/en-ner-persons.bin").toURI());
+        service = new OpenNlpService(path.getParent(), settings).start();
     }
 
     public void testThatExtractionsWork() throws Exception {
@@ -110,7 +117,20 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "names", "Kobe Bryant", "Michael Jordan");
         assertThatHasElements(entityData, "dates", "Yesterday");
         assertThatHasElements(entityData, "locations", "Munich", "New York");
+    }
 
+    public void testToXContent() throws Exception {
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+                new HashSet<>(Arrays.asList("names", "dates", "locations")));
+
+        IngestDocument ingestDocument = getIngestDocument();
+        processor.execute(ingestDocument);
+
+        SimulateProcessorResult result = new SimulateProcessorResult("tag", ingestDocument);
+
+        try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
+            result.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        }
     }
 
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
@@ -138,15 +158,16 @@ public class OpenNlpProcessorTests extends ESTestCase {
     }
 
     private void assertThatHasElements(Map<String, Object> entityData, String field, String ... items) {
-        Set<String> values = getValues(entityData, field);
+        List<String> values = getValues(entityData, field);
+        assertThat(values, hasSize(items.length));
         assertThat(values, containsInAnyOrder(items));
     }
 
-    private Set<String> getValues(Map<String, Object> entityData, String field) {
+    private List<String> getValues(Map<String, Object> entityData, String field) {
         assertThat(entityData, hasKey(field));
-        assertThat(entityData.get(field), instanceOf(Set.class));
+        assertThat(entityData.get(field), instanceOf(List.class));
         @SuppressWarnings("unchecked")
-        Set<String> values = (Set<String>) entityData.get(field);
+        List<String> values = (List<String>) entityData.get(field);
         return values;
     }
 }

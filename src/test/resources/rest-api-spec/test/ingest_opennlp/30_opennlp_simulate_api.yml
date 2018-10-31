@@ -1,0 +1,29 @@
+---
+"Test opennlp processor with defaults":
+  - do:
+      ingest.put_pipeline:
+        id: "my_pipeline"
+        body:  >
+          {
+            "description": "_description",
+            "processors": [
+              {
+                "opennlp" : {
+                  "field" : "field1"
+                }
+              }
+            ]
+          }
+  - match: { acknowledged: true }
+
+  - do:
+      ingest.simulate:
+        id: "my_pipeline"
+        body: {docs: [ { _source: { field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." } } ] }
+
+  - match: { docs.0.doc._source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
+  - length: { docs.0.doc._source.entities: 3 }
+  - match: { docs.0.doc._source.entities.dates: [ "Yesterday" ] }
+  - match: { docs.0.doc._source.entities.names: [ "Kobe Bryant", "Michael Jordan" ] }
+  - match: { docs.0.doc._source.entities.locations: [ "Munich", "New York" ] }
+
