@@ -51,7 +51,7 @@ public class OpenNlpProcessor extends AbstractProcessor {
     }
 
     @Override
-    public void execute(IngestDocument ingestDocument) {
+    public IngestDocument execute(IngestDocument ingestDocument) {
         String content = ingestDocument.getFieldValue(sourceField, String.class);
 
         if (Strings.hasLength(content)) {
@@ -73,6 +73,8 @@ public class OpenNlpProcessor extends AbstractProcessor {
 
             ingestDocument.setFieldValue(targetField, entitiesToStore);
         }
+
+        return ingestDocument;
     }
 
     @Override

@@ -94,7 +94,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         ingestDocument.setFieldValue("target_field", entityData);
 
-        processor.execute(ingestDocument);
+        ingestDocument = processor.execute(ingestDocument);
 
         entityData = getIngestDocumentData(ingestDocument);
 
@@ -135,8 +135,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
         IngestDocument ingestDocument = getIngestDocument();
-        processor.execute(ingestDocument);
-        return getIngestDocumentData(ingestDocument);
+        return getIngestDocumentData(processor.execute(ingestDocument));
     }
 
     private IngestDocument getIngestDocument() throws Exception {
