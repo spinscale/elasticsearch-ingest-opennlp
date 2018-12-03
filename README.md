@@ -34,16 +34,11 @@ To download the models, run the following under Linux and osx
 bin/ingest-opennlp/download-models
 ```
 
-If you are using windows, please download the following models
+If you are using windows, please use the following command
 
 ```
-http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin
-http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin
-http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin
+bin/ingest-opennlp/download-models.bat
 ```
-
-And store them in `config/ingest-opennlp/` (under the filenames referred
-to in the following configuration section)
 
 
 ## Usage
