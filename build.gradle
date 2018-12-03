@@ -74,16 +74,12 @@ dependencies {
   compile 'org.apache.opennlp:opennlp-tools:1.9.0'
 }
 
-bundlePlugin {
-  from('src/test/resources/models') {
-    into 'config/'
-  }
-}
-
 integTestCluster {
   setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
   setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
   setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
+
+  setupCommand 'downloadModels', 'bin/ingest-opennlp/download-models'
 }
 
 // check style can be disabled, or you can configure a different checkstyle file

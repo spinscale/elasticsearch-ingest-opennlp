@@ -26,6 +26,26 @@ This plugin is also intended to show you, that using gradle as a build system ma
 | 5.1.2 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.2.1/ingest-opennlp-5.1.2.1.zip` |
 | 5.1.1 | `bin/elasticsearch-plugin install https://oss.sonatype.org/content/repositories/releases/de/spinscale/elasticsearch/plugin/ingest/ingest-opennlp/5.1.1.1/ingest-opennlp-5.1.1.1.zip` |
 
+**IMPORTANT**: If you are running this plugin with Elasticsearch 6.5.2 or newer, you need to download the NER models from sourceforge after installation.
+
+To download the models, run the following under Linux and osx
+
+```
+bin/ingest-opennlp/download-models
+```
+
+If you are using windows, please download the following models
+
+```
+http://opennlp.sourceforge.net/models-1.5/en-ner-person.bin
+http://opennlp.sourceforge.net/models-1.5/en-ner-location.bin
+http://opennlp.sourceforge.net/models-1.5/en-ner-date.bin
+```
+
+And store them in `config/ingest-opennlp/` (under the filenames referred
+to in the following configuration section)
+
+
 ## Usage
 
 This is how you configure a pipeline with support for opennlp

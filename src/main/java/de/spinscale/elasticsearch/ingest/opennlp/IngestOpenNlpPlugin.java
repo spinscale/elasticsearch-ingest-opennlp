@@ -31,7 +31,9 @@ import java.util.Map;
 
 public class IngestOpenNlpPlugin extends Plugin implements IngestPlugin {
 
-    public static final Setting.AffixSetting<String> MODEL_FILE_SETTINGS =
+    static final String NAME = "ingest-opennlp";
+
+    static final Setting.AffixSetting<String> MODEL_FILE_SETTINGS =
             Setting.prefixKeySetting("ingest.opennlp.model.file.", key -> Setting.simpleString(key, Property.NodeScope));
 
     @Override

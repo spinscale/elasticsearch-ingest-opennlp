@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ES_MAIN_CLASS=de.spinscale.elasticsearch.ingest.opennlp.OpenNlpModelDownloader \
+  ES_ADDITIONAL_SOURCES="ingest-opennlp/ingest-opennlp-env" \
+  "`dirname "$0"`"/../elasticsearch-cli \
+  "$@"
