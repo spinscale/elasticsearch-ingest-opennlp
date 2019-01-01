@@ -71,7 +71,7 @@ githubRelease.doFirst {
 // In this section you declare the dependencies for your production and test code
 // Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
-  compile 'org.apache.opennlp:opennlp-tools:1.9.0'
+  compile 'org.apache.opennlp:opennlp-tools:1.9.1'
 }
 
 integTestCluster {
