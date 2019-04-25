@@ -49,7 +49,7 @@ bin/ingest-opennlp/download-models
 If you are using windows, please use the following command
 
 ```
-bin/ingest-opennlp/download-models.bat
+bin\ingest-opennlp\download-models.bat
 ```
 
 
