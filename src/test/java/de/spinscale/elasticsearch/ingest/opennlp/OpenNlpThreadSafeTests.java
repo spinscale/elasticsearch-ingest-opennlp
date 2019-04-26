@@ -20,6 +20,7 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.iterable.Iterables;
 import org.elasticsearch.test.ESTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -27,7 +28,6 @@ import org.junit.Before;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -91,10 +91,10 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
         @Override
         public void run() {
             try {
-                Set<String> locations = service.find(city + " is really an awesome city, but others are as well.", "locations");
+                ExtractedEntities locations = service.find(city + " is really an awesome city, but others are as well.", "locations");
                 // logger.info("Got {}, expected {}, index {}", locations, city, idx);
-                if (locations.size() > 0) {
-                    result = locations.stream().findFirst().get();
+                if (locations.getEntityValues().size() > 0) {
+                    result = Iterables.get(locations.getEntityValues(), 0);
                 }
             } catch (Exception e) {
                 logger.error((Supplier<?>) () -> new ParameterizedMessage("Unexpected exception"), e);

@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 public class OpenNlpProcessorTests extends ESTestCase {
@@ -61,7 +62,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatExtractionsWork() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -72,7 +73,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatFieldsCanBeExcluded() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                new HashSet<>(Arrays.asList("dates")));
+                null, new HashSet<>(Arrays.asList("dates")));
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -83,7 +84,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         IngestDocument ingestDocument = getIngestDocument();
 
@@ -121,7 +122,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testToXContent() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
 
         IngestDocument ingestDocument = getIngestDocument();
         processor.execute(ingestDocument);
@@ -131,6 +132,23 @@ public class OpenNlpProcessorTests extends ESTestCase {
         try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
             result.toXContent(builder, ToXContent.EMPTY_PARAMS);
         }
+    }
+
+    public void testAnnotatedText() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        config.put("field", "source_field");
+        config.put("annotated_text_field", "my_annotated_text_field");
+
+        OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
+        Map<String, Processor.Factory> registry = Collections.emptyMap();
+        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
+
+        IngestDocument ingestDocument = processor.execute(getIngestDocument());
+        String content = ingestDocument.getFieldValue("my_annotated_text_field", String.class);
+        assertThat(content, is("[Kobe Bryant](Person_Kobe Bryant) was one of the best basketball players of all times. Not even" +
+                " [Michael Jordan](Person_Michael Jordan) has ever scored 81 points in one game. [Munich](Location_Munich) is really" +
+                " an awesome city, but [New York](Location_New York) is as well. [Yesterday](Date_Yesterday) has been the hottest" +
+                " day of the year."));
     }
 
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {

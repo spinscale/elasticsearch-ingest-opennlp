@@ -20,10 +20,6 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.test.ESTestCase;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Set;
-
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -34,7 +30,7 @@ import static org.hamcrest.Matchers.hasSize;
  */
 public class OpenNlpServiceTests extends ESTestCase {
 
-    public void testThatModelsCanBeLoaded() throws IOException, URISyntaxException {
+    public void testThatModelsCanBeLoaded() {
         Settings settings = Settings.builder()
                 .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
                 .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
@@ -43,16 +39,16 @@ public class OpenNlpServiceTests extends ESTestCase {
         OpenNlpService service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings);
         service.start();
 
-        Set<String> names = service.find("Kobe Bryant was one of the best basketball players of all time.", "names");
-        assertThat(names, hasSize(1));
-        assertThat(names, hasItem("Kobe Bryant"));
+        ExtractedEntities nameEntites = service.find("Kobe Bryant was one of the best basketball players of all time.", "names");
+        assertThat(nameEntites.getEntityValues(), hasSize(1));
+        assertThat(nameEntites.getEntityValues(), hasItem("Kobe Bryant"));
 
-        Set<String> locations = service.find("Munich is really an awesome city, but New York is as well.", "locations");
-        assertThat(locations, hasSize(2));
-        assertThat(locations, contains("Munich", "New York"));
+        ExtractedEntities locationEntities = service.find("Munich is really an awesome city, but New York is as well.", "locations");
+        assertThat(locationEntities.getEntityValues(), hasSize(2));
+        assertThat(locationEntities.getEntityValues(), contains("Munich", "New York"));
 
-        Set<String> dates = service.find("Yesterday has been the hottest day of the year.", "dates");
-        assertThat(dates, hasSize(1));
-        assertThat(dates, contains("Yesterday"));
+        ExtractedEntities dateEntities = service.find("Yesterday has been the hottest day of the year.", "dates");
+        assertThat(dateEntities.getEntityValues(), hasSize(1));
+        assertThat(dateEntities.getEntityValues(), contains("Yesterday"));
     }
 }

@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.elasticsearch.ingest.ConfigurationUtils.readOptionalList;
+import static org.elasticsearch.ingest.ConfigurationUtils.readOptionalStringProperty;
 import static org.elasticsearch.ingest.ConfigurationUtils.readStringProperty;
 
 public class OpenNlpProcessor extends AbstractProcessor {
@@ -40,13 +41,16 @@ public class OpenNlpProcessor extends AbstractProcessor {
     private final OpenNlpService openNlpService;
     private final String sourceField;
     private final String targetField;
+    private final String annotatedTextField;
     private final Set<String> fields;
 
-    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, Set<String> fields) {
+    OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, String annotatedTextField,
+                     Set<String> fields) {
         super(tag);
         this.openNlpService = openNlpService;
         this.sourceField = sourceField;
         this.targetField = targetField;
+        this.annotatedTextField = annotatedTextField;
         this.fields = fields;
     }
 
@@ -58,9 +62,11 @@ public class OpenNlpProcessor extends AbstractProcessor {
             Map<String, Set<String>> entities = new HashMap<>();
             mergeExisting(entities, ingestDocument, targetField);
 
+            List<ExtractedEntities> extractedEntities = new ArrayList<>();
             for (String field : fields) {
-                Set<String> data = openNlpService.find(content, field);
-                merge(entities, field, data);
+                ExtractedEntities data = openNlpService.find(content, field);
+                extractedEntities.add(data);
+                merge(entities, field, data.getEntityValues());
             }
 
             // convert set to list, otherwise toXContent serialization in simulate pipeline fails
@@ -72,6 +78,11 @@ public class OpenNlpProcessor extends AbstractProcessor {
             }
 
             ingestDocument.setFieldValue(targetField, entitiesToStore);
+
+            if (Strings.hasLength(annotatedTextField) && extractedEntities.isEmpty() == false) {
+                String annotatedText = OpenNlpService.createAnnotatedText(content, extractedEntities);
+                ingestDocument.setFieldValue(annotatedTextField, annotatedText);
+            }
         }
 
         return ingestDocument;
@@ -94,9 +105,10 @@ public class OpenNlpProcessor extends AbstractProcessor {
         public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config) {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
+            String annotatedTextField = readOptionalStringProperty(TYPE, processorTag, config, "annotated_text_field");
             List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
             final Set<String> foundFields = fields == null || fields.size() == 0 ? openNlpService.getModels() : new HashSet<>(fields);
-            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, foundFields);
+            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, annotatedTextField, foundFields);
         }
     }
 

@@ -27,14 +27,18 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.util.set.Sets;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,7 +59,7 @@ public class OpenNlpService {
         this.settings = settings;
     }
 
-    public Set<String> getModels() {
+    Set<String> getModels() {
         return IngestOpenNlpPlugin.MODEL_FILE_SETTINGS.getAsMap(settings).keySet();
     }
 
@@ -83,22 +87,82 @@ public class OpenNlpService {
         return this;
     }
 
-    public Set<String> find(String content, String field) {
+    public ExtractedEntities find(String content, String field) {
         try {
             if (!nameFinderModels.containsKey(field)) {
                 throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
             }
-            TokenNameFinderModel finderModel= nameFinderModels.get(field);
+            TokenNameFinderModel finderModel = nameFinderModels.get(field);
             if (threadLocal.get() == null || !threadLocal.get().equals(finderModel)) {
                 threadLocal.set(finderModel);
             }
 
             String[] tokens = SimpleTokenizer.INSTANCE.tokenize(content);
-            Span spans[] = new NameFinderME(finderModel).find(tokens);
-            String[] names = Span.spansToStrings(spans, tokens);
-            return Sets.newHashSet(names);
+            Span[] spans = new NameFinderME(finderModel).find(tokens);
+
+            return new ExtractedEntities(tokens, spans);
         } finally {
             threadLocal.remove();
         }
+    }
+
+    static String createAnnotatedText(String content, List<ExtractedEntities> extractedEntities) {
+        // these spans contain the real offset of each word in start/end variables!
+        // the spans of the method argument contain the offset of each token, as mentioned in tokens!
+        Span[] spansWithRealOffsets = SimpleTokenizer.INSTANCE.tokenizePos(content);
+
+        List<Span> spansList = new ArrayList<>();
+        extractedEntities.stream()
+                .map(ExtractedEntities::getSpans)
+                .forEach(s -> spansList.addAll(Arrays.asList(s)));
+
+        Span[] spans = NameFinderME.dropOverlappingSpans(spansList.toArray(new Span[0]));
+        String[] tokens = extractedEntities.get(0).getTokens();
+
+        // shortcut if there is no enrichment to be done
+        if (spans.length == 0) {
+            return content;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < tokens.length; i++) {
+            final int idx = i;
+            String token = tokens[i];
+
+            final Optional<Span> optionalSpan = Arrays.stream(spans).filter(s -> s.getStart() == idx).findFirst();
+            if (optionalSpan.isPresent()) {
+                Span span = optionalSpan.get();
+                int start = span.getStart();
+                int end = span.getEnd();
+                String type = span.getType();
+
+                String[] spanTokens = new String[end - start];
+                int spanPosition = 0;
+                for (int tokenPosition = start ; tokenPosition < end; tokenPosition++) {
+                    spanTokens[spanPosition++] = tokens[tokenPosition];
+                }
+                String entityString = Strings.arrayToDelimitedString(spanTokens, " ");
+
+                builder.append("[");
+                builder.append(entityString);
+                builder.append("](");
+                builder.append(Strings.capitalize(type));
+                builder.append("_");
+                builder.append(entityString);
+                builder.append(")");
+                i = end - 1;
+            } else {
+                builder.append(token);
+            }
+
+            // only append a whitespace, if the offsets actually differ
+            if (i < tokens.length - 1) {
+                if (spansWithRealOffsets[i].getEnd() != spansWithRealOffsets[i+1].getStart()) {
+                    builder.append(" ");
+                }
+            }
+        }
+
+        return builder.toString();
     }
 }

@@ -114,6 +114,26 @@ PUT _ingest/pipeline/opennlp-pipeline
 }
 ```
 
+You can also emit text in the format used by the [annotated text plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/current/mapper-annotated-text.html).
+
+```
+PUT _ingest/pipeline/opennlp-pipeline
+{
+  "description": "A pipeline to do named entity extraction",
+  "processors": [
+    {
+      "opennlp" : {
+        "field" : "my_field",
+        "annotated_text_field" : "my_annotated_text_field"
+      }
+    }
+  ]
+}
+```
+
+**Note: The creation of annotated text field syntax is only supported when running on Elasticsearch 7.0.1 onwards**
+
+
 ## Configuration
 
 You can configure own models per field, the setting for this is prefixed `ingest.opennlp.model.file.`. So you can configure any model with any field name, by specifying a name and a path to file, like the three examples below:
