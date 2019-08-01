@@ -17,6 +17,13 @@ plugins {
   id "co.riiid.gradle" version "0.4.2"
 }
 
+// remove this again after 7.3.0
+configurations.all {
+  resolutionStrategy.dependencySubstitution {
+    substitute project(':rest-api-spec') with module ("org.elasticsearch:rest-api-spec:${elasticsearchVersion}")
+  }
+}
+
 import de.undercouch.gradle.tasks.download.Download
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
