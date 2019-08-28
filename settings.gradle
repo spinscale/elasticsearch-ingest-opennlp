@@ -1,3 +1,1 @@
 rootProject.name = 'ingest-opennlp'
-// remove this again after 7.3.0
-include ':rest-api-spec'
