@@ -1,3 +1,5 @@
+import org.elasticsearch.gradle.testclusters.TestClustersRegistry
+import org.elasticsearch.gradle.testclusters.TestClustersPlugin
 import java.nio.file.Files
 
 buildscript {
@@ -74,12 +76,20 @@ dependencies {
   compile 'org.apache.opennlp:opennlp-tools:1.9.1'
 }
 
-integTestCluster {
+// TODO remove this in 7.6
+integTest.enabled = false
+
+testClusters.integTest {
   setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
   setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
   setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
 
-  setupCommand 'downloadModels', 'bin/ingest-opennlp/download-models'
+  // TODO find a replacement to install the models before running integ tests
+  // this capability has been removed in 7.5
+  // GH issue to follow is https://github.com/elastic/elasticsearch/issues/50382
+  // PR is https://github.com/elastic/elasticsearch/pull/50414
+  // This also requires restoring OpenNlpRestIT
+  //setupCommand 'downloadModels', 'bin/ingest-opennlp/download-models'
 }
 
 // check style can be disabled, or you can configure a different checkstyle file
@@ -124,3 +134,14 @@ def downloadIfNotExists(String url, String file) {
     }
   }
 }
+
+configurations.whenObjectAdded { c ->
+    if (c.name == 'elasticsearch_7.5.0_integ_test_zip_null') {
+        project.dependencies.add('elasticsearch_7.5.0_integ_test_zip_null', 'org.elasticsearch.distribution.integ-test-zip:elasticsearch:7.5.0@zip')
+    }
+}
+
+TestClustersRegistry registry = project.rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
+TestClustersPlugin.configureClaimClustersHook(project.gradle, registry)
+TestClustersPlugin.configureStartClustersHook(project.gradle, registry)
+TestClustersPlugin.configureStopClustersHook(project.gradle, registry)
