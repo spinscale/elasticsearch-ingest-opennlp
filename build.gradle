@@ -75,7 +75,7 @@ dependencies {
 }
 
 // TODO remove this in 7.6
-integTest.enabled = false
+//integTest.enabled = false
 
 testClusters.integTest {
   setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
