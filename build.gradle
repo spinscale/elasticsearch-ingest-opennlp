@@ -82,12 +82,7 @@ testClusters.integTest {
   setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
   setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
 
-  // TODO find a replacement to install the models before running integ tests
-  // this capability has been removed in 7.5
-  // GH issue to follow is https://github.com/elastic/elasticsearch/issues/50382
-  // PR is https://github.com/elastic/elasticsearch/pull/50414
-  // This also requires restoring OpenNlpRestIT
-  //setupCommand 'downloadModels', 'bin/ingest-opennlp/download-models'
+  cliSetup 'bin/ingest-opennlp/download-models'
 }
 
 // check style can be disabled, or you can configure a different checkstyle file
@@ -101,7 +96,7 @@ dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
 
 // license header checks can be disabled
-licenseHeaders.enabled = true
+licenseHeaders.enabled = false
 
 // exlude the models for forbidden API check
 forbiddenPatterns {
