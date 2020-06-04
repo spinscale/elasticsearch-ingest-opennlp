@@ -22,7 +22,6 @@ version = "${elasticsearchVersion}.1-SNAPSHOT"
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'eclipse'
 apply plugin: 'elasticsearch.esplugin'
 
 // remove this in 7.6.2 again
@@ -99,6 +98,9 @@ thirdPartyAudit.enabled = false
 
 // license header checks can be disabled
 licenseHeaders.enabled = false
+
+// no need to validate pom, as we do not upload to sonatype
+validateNebulaPom.enabled = false
 
 // exlude the models for forbidden API check
 forbiddenPatterns {
