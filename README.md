@@ -112,23 +112,16 @@ PUT _ingest/pipeline/opennlp-pipeline
   ]
 }
 
-PUT /my-index/my-type/1?pipeline=opennlp-pipeline
+PUT /my-index/_doc/1?pipeline=opennlp-pipeline
 {
   "my_field" : "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."
 }
 
-GET /my-index/my-type/1
-{
-  "my_field" : "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year.",
-  "entities" : {
-    "locations" : [ "Munich", "New York" ],
-    "dates" : [ "Yesterday" ],
-    "names" : [ "Kobe Bryant", "Michael Jordan" ]
-  }
-}
+# response will contain an entities field with locations, dates and persons
+GET /my-index/_doc/1
 ```
 
-You can also specify only certain named entities in the processor, i.e. if you only want to extract names
+You can also specify only certain named entities in the processor, i.e. if you only want to extract persons
 
 
 ```
@@ -139,7 +132,7 @@ PUT _ingest/pipeline/opennlp-pipeline
     {
       "opennlp" : {
         "field" : "my_field"
-        "fields" : [ "names" ]
+        "fields" : [ "persons" ]
       }
     }
   ]
@@ -172,9 +165,9 @@ You can configure own models per field, the setting for this is prefixed `ingest
 
 | Parameter | Use |
 | --- | --- |
-| ingest.opennlp.model.file.name     | Configure the file for named entity recognition for the field name        |
-| ingest.opennlp.model.file.date     | Configure the file for date entity recognition for the field date         |
-| ingest.opennlp.model.file.person   | Configure the file for person entity recognition for the field person     |
+| ingest.opennlp.model.file.names    | Configure the file for named entity recognition for the field name        |
+| ingest.opennlp.model.file.dates    | Configure the file for date entity recognition for the field date         |
+| ingest.opennlp.model.file.persons  | Configure the file for person entity recognition for the field person     |
 | ingest.opennlp.model.file.WHATEVER | Configure the file for WHATEVER entity recognition for the field WHATEVER |
 
 ## Development setup & running tests

@@ -19,7 +19,6 @@
   - do:
       index:
         index: test
-        type: test
         id: 1
         pipeline: "my_pipeline"
         body: {field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."}
@@ -27,7 +26,6 @@
   - do:
       get:
         index: test
-        type: test
         id: 1
   - match: { _source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
   - length: { _source.entities: 3 }
@@ -57,7 +55,6 @@
   - do:
       index:
         index: test
-        type: test
         id: 1
         pipeline: "my_pipeline"
         body: {field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."}
@@ -65,7 +62,6 @@
   - do:
       get:
         index: test
-        type: test
         id: 1
   - match: { _source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
   - length: { _source.entities: 1 }
@@ -93,7 +89,6 @@
   - do:
       index:
         index: test
-        type: test
         id: 1
         pipeline: "my_pipeline"
         body: {field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year."}
@@ -101,7 +96,6 @@
   - do:
       get:
         index: test
-        type: test
         id: 1
   - match: { _source.field1: "Kobe Bryant was one of the best basketball players of all times. Not even Michael Jordan has ever scored 81 points in one game. Munich is really an awesome city, but New York is as well. Yesterday has been the hottest day of the year." }
   - match: { _source.annotated_text: "[Kobe Bryant](Person_Kobe Bryant) was one of the best basketball players of all times. Not even [Michael Jordan](Person_Michael Jordan) has ever scored 81 points in one game. [Munich](Location_Munich) is really an awesome city, but [New York](Location_New York) is as well. [Yesterday](Date_Yesterday) has been the hottest day of the year." }
