@@ -62,7 +62,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatExtractionsWork() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -73,7 +73,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatFieldsCanBeExcluded() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                null, new HashSet<>(Arrays.asList("dates")));
+                null, new HashSet<>(Arrays.asList("dates")), "description");
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -84,7 +84,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         IngestDocument ingestDocument = getIngestDocument();
 
@@ -111,7 +111,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
+        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), "description", config);
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -122,7 +122,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     public void testToXContent() throws Exception {
         OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
-                null, new HashSet<>(Arrays.asList("names", "dates", "locations")));
+                null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         IngestDocument ingestDocument = getIngestDocument();
         processor.execute(ingestDocument);
@@ -141,7 +141,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), config);
+        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), "description", config);
 
         IngestDocument ingestDocument = processor.execute(getIngestDocument());
         String content = ingestDocument.getFieldValue("my_annotated_text_field", String.class);

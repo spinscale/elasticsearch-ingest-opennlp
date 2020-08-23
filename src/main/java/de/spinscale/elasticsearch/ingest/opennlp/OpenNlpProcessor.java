@@ -45,8 +45,8 @@ public class OpenNlpProcessor extends AbstractProcessor {
     private final Set<String> fields;
 
     OpenNlpProcessor(OpenNlpService openNlpService, String tag, String sourceField, String targetField, String annotatedTextField,
-                     Set<String> fields) {
-        super(tag);
+                     Set<String> fields, String description) {
+        super(tag, description);
         this.openNlpService = openNlpService;
         this.sourceField = sourceField;
         this.targetField = targetField;
@@ -102,13 +102,14 @@ public class OpenNlpProcessor extends AbstractProcessor {
         }
 
         @Override
-        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, Map<String, Object> config) {
+        public OpenNlpProcessor create(Map<String, Processor.Factory> registry, String processorTag, String description,
+                                       Map<String, Object> config) {
             String field = readStringProperty(TYPE, processorTag, config, "field");
             String targetField = readStringProperty(TYPE, processorTag, config, "target_field", "entities");
             String annotatedTextField = readOptionalStringProperty(TYPE, processorTag, config, "annotated_text_field");
             List<String> fields = readOptionalList(TYPE, processorTag, config, "fields");
             final Set<String> foundFields = fields == null || fields.size() == 0 ? openNlpService.getModels() : new HashSet<>(fields);
-            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, annotatedTextField, foundFields);
+            return new OpenNlpProcessor(openNlpService, processorTag, field, targetField, annotatedTextField, foundFields, description);
         }
     }
 
