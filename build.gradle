@@ -103,6 +103,11 @@ forbiddenPatterns {
   exclude '**/*.bin'
 }
 
+// ignore javadoc errors for now
+tasks.withType(Javadoc) {
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 // download the models before the tests are run, also needed for packaging
 project.afterEvaluate {
   processTestResources.dependsOn downloadModels
