@@ -24,7 +24,7 @@ version = "${elasticsearchVersion}.1-SNAPSHOT"
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
-apply plugin: 'elasticsearch.rest-resources'
+apply plugin: 'elasticsearch.yaml-rest-test'
 apply plugin: 'elasticsearch.testclusters'
 
 // license of this project
@@ -72,9 +72,12 @@ githubRelease.doFirst {
 // Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
   compile 'org.apache.opennlp:opennlp-tools:1.9.3'
+
+  // the yaml tests require a log4j2 dependency, otherwise a dependency is thrown on startup
+  yamlRestTestImplementation 'org.apache.logging.log4j:log4j-core:2.11.1'
 }
 
-testClusters.integTest {
+testClusters.all {
   setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
   setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
   setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
@@ -97,6 +100,9 @@ licenseHeaders.enabled = false
 
 // no need to validate pom, as we do not upload to sonatype
 validateNebulaPom.enabled = false
+
+// added in 7.10 to allow for build
+loggerUsageCheck.enabled = false
 
 // exlude the models for forbidden API check
 forbiddenPatterns {
@@ -123,7 +129,7 @@ task downloadModels {
 }
 
 def downloadIfNotExists(String url, String file) {
-  String dir = 'src' + File.separator + 'test' + File.separator + 'resources' + File.separator + 'models'
+  String dir = rootDir.getAbsolutePath() + File.separator + 'src' + File.separator + 'test' + File.separator + 'resources' + File.separator + 'models'
   new File(dir).mkdirs()
   if (new File(dir + File.separator + file).exists() == false) {
     download {

@@ -18,6 +18,7 @@
 package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.action.ingest.SimulateProcessorResult;
+import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.io.PathUtils;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -127,7 +128,8 @@ public class OpenNlpProcessorTests extends ESTestCase {
         IngestDocument ingestDocument = getIngestDocument();
         processor.execute(ingestDocument);
 
-        SimulateProcessorResult result = new SimulateProcessorResult("tag", ingestDocument);
+        SimulateProcessorResult result = new SimulateProcessorResult("type", "tag", "description",
+                ingestDocument, Tuple.tuple("data", true));
 
         try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
             result.toXContent(builder, ToXContent.EMPTY_PARAMS);
