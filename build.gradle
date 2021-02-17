@@ -16,6 +16,7 @@ plugins {
   id "de.undercouch.download" version "4.1.1"
   id "co.riiid.gradle" version "0.4.2"
   id "com.github.ben-manes.versions" version '0.33.0'
+  id 'de.thetaphi.forbiddenapis' version '3.1'
 }
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
@@ -85,28 +86,12 @@ testClusters.all {
   cliSetup 'ingest-opennlp/download-models'
 }
 
-// check style can be disabled, or you can configure a different checkstyle file
-// checkstyleMain.enabled = false
-// checkstyleTest.enabled = false
-
-// dependency license check needs can be enabled
-dependencyLicenses.enabled = false
-
-// thirdparty audit needs can be enabled
-thirdPartyAudit.enabled = false
-
-// license header checks can be disabled
-licenseHeaders.enabled = false
-
 // no need to validate pom, as we do not upload to sonatype
 validateNebulaPom.enabled = false
 
-// added in 7.10 to allow for build
-loggerUsageCheck.enabled = false
-
 // exlude the models for forbidden API check
-forbiddenPatterns {
-  exclude '**/*.bin'
+forbiddenApis {
+  bundledSignatures = [ 'jdk-unsafe', 'jdk-deprecated', 'jdk-non-portable', 'jdk-reflection', 'jdk-internal', 'jdk-system-out' ]
 }
 
 // ignore javadoc errors for now
