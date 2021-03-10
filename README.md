@@ -10,6 +10,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 
 | ES    | Command |
 | ----- | ------- |
+| 7.11.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.11.2.1/ingest-opennlp-7.11.2.1.zip` |
 | 7.11.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.11.1.1/ingest-opennlp-7.11.1.1.zip` |
 | 7.11.0 | No release due to issues with Elasticsearch dependencies |
 | 7.10.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.10.2.1/ingest-opennlp-7.10.2.1.zip` |
