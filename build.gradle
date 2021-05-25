@@ -33,9 +33,6 @@ licenseFile = rootProject.file('LICENSE.txt')
 // copyright notices
 noticeFile = rootProject.file('NOTICE.txt')
 
-// disable uploadArchives task for now, no upload happening currently
-uploadArchives.enabled = false
-
 esplugin {
   // license of the plugin, may be different than the above license
   licenseFile rootProject.file('LICENSE.txt')
@@ -72,7 +69,7 @@ githubRelease.doFirst {
 // In this section you declare the dependencies for your production and test code
 // Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
-  compile 'org.apache.opennlp:opennlp-tools:1.9.3'
+  implementation 'org.apache.opennlp:opennlp-tools:1.9.3'
 
   // the yaml tests require a log4j2 dependency, otherwise a dependency is thrown on startup
   yamlRestTestImplementation 'org.apache.logging.log4j:log4j-core:2.11.1'
@@ -87,7 +84,7 @@ testClusters.all {
 }
 
 // no need to validate pom, as we do not upload to sonatype
-validateNebulaPom.enabled = false
+validateElasticPom.enabled = false
 
 // exlude the models for forbidden API check
 forbiddenApis {
