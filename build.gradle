@@ -2,11 +2,6 @@ import java.nio.file.Files
 import de.undercouch.gradle.tasks.download.Download
 
 buildscript {
-  repositories {
-    mavenLocal()
-    mavenCentral()
- }
-
   dependencies {
     classpath "org.elasticsearch.gradle:build-tools:${elasticsearchVersion}"
   }
