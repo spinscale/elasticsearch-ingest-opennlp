@@ -63,6 +63,7 @@ githubRelease.doFirst {
     token = System.getProperty('GITHUB_TOKEN')
     tagName = currentVersion
     assets = [ filename ]
+    targetCommitish = 'main'
   }
 }
 
@@ -164,14 +165,6 @@ check.dependsOn 'yamlRestTest'
 dependencies {
   yamlRestTestImplementation "org.elasticsearch.test:framework:$elasticsearchVersion"
   restTestSpecs "org.elasticsearch:rest-api-spec:$elasticsearchVersion"
-}
-
-// remove when 7.14.1 is released
-tasks.withType(Test).configureEach { testTask ->
-  testTask.systemProperties 'gradle.dist.lib': "${gradle.gradleHomeDir}/lib",
-        'gradle.worker.jar': "${gradle.gradleUserHomeDir}/caches/${gradle.gradleVersion}/workerMain/gradle-worker.jar",
-        'tests.gradle': 'true',
-        'tests.task': testTask.path
 }
 
 // This will be available in 7.15 in build tools and not manually declared. 
