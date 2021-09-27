@@ -43,6 +43,16 @@ esplugin {
   classname = 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
 }
 
+// remove me after alpha-2 release
+configurations {
+  resolveableCompileOnly {
+    exclude(group: 'org.elasticsearch', module: 'elasticsearch-lz4')
+  }
+  implementation {
+    exclude(group: 'org.elasticsearch', module: 'elasticsearch-lz4')
+  }
+}
+
 githubRelease.doFirst {
   if (!System.getProperty('GITHUB_TOKEN', '')) {
     throw new Exception('Missing property GITHUB_TOKEN')
