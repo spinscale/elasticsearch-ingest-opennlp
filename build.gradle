@@ -35,6 +35,8 @@ apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'elasticsearch.testclusters'
 
+sourceCompatibility = '11'
+
 esplugin {
   licenseFile = rootProject.file('LICENSE.txt')
   noticeFile = rootProject.file('NOTICE.txt')
