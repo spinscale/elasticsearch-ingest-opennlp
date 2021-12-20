@@ -73,9 +73,6 @@ githubRelease.doFirst {
 // Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
   implementation 'org.apache.opennlp:opennlp-tools:1.9.4'
-
-  // the yaml tests require a log4j2 dependency, otherwise a dependency is thrown on startup
-  runtimeOnly 'org.apache.logging.log4j:log4j-core:2.16.0'
 }
 
 testClusters.all {
