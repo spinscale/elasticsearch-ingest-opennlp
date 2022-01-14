@@ -13,6 +13,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 | 8.0.0-rc1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-rc1.1/ingest-opennlp-8.0.0-rc1.1.zip` |
 | 8.0.0-beta1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-beta1.1/ingest-opennlp-8.0.0-beta1.1.zip` |
 | 8.0.0-alpha2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-alpha2.1/ingest-opennlp-8.0.0-alpha2.1.zip` |
+| 7.16.3 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.16.3.1/ingest-opennlp-7.16.3.1.zip` |
 | 7.16.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.16.2.1/ingest-opennlp-7.16.2.1.zip` |
 | 7.16.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.16.1.1/ingest-opennlp-7.16.1.1.zip` |
 | 7.16.0 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.16.0.1/ingest-opennlp-7.16.0.1.zip` |
@@ -61,6 +62,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 | 7.1.0 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.1.0.1/ingest-opennlp-7.1.0.1.zip` |
 | 7.0.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.0.1.1/ingest-opennlp-7.0.1.1.zip` |
 | 7.0.0 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.0.0.1/ingest-opennlp-7.0.0.1.zip` |
+| 6.8.23| `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.8.23.1/ingest-opennlp-6.8.23.1.zip` |
 | 6.8.22| `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.8.22.1/ingest-opennlp-6.8.22.1.zip` |
 | 6.8.21| `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.8.21.1/ingest-opennlp-6.8.21.1.zip` |
 | 6.8.20| `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/6.8.20.1/ingest-opennlp-6.8.20.1.zip` |
