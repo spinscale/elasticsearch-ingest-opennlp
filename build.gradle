@@ -17,10 +17,10 @@ buildscript {
 }
 
 plugins {
-  id "de.undercouch.download" version "4.1.1"
+  id "de.undercouch.download" version "5.0.1"
   // the old co.riiid.gradle is not gradle 7.0 compatible
   id "com.github.humblerookie.gradle" version "0.4.4"
-  id "com.github.ben-manes.versions" version '0.33.0'
+  id "com.github.ben-manes.versions" version '0.41.0'
 }
 
 repositories {
