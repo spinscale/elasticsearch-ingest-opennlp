@@ -18,7 +18,7 @@
 package de.spinscale.elasticsearch.ingest.opennlp;
 
 import joptsimple.OptionSet;
-import org.elasticsearch.cli.EnvironmentAwareCommand;
+import org.elasticsearch.common.cli.EnvironmentAwareCommand;
 import org.elasticsearch.cli.SuppressForbidden;
 import org.elasticsearch.cli.Terminal;
 import org.elasticsearch.env.Environment;
