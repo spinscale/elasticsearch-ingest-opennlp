@@ -23,8 +23,6 @@ import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.message.ParameterizedMessage;
-import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.StopWatch;
 import org.elasticsearch.common.Strings;
@@ -73,7 +71,9 @@ public class OpenNlpService {
             try (InputStream is = Files.newInputStream(path)) {
                 nameFinderModels.put(name, new TokenNameFinderModel(is));
             } catch (IOException e) {
-                logger.error((Supplier<?>) () -> new ParameterizedMessage("Could not load model [{}] with path [{}]", name, path), e);
+                // this means a broken configuration, throw an exception and exit
+                // otherwise users will ask why enrichment does not work
+                throw new ElasticsearchException(e);
             }
             sw.stop();
         }
@@ -90,7 +90,7 @@ public class OpenNlpService {
     public ExtractedEntities find(String content, String field) {
         try {
             if (!nameFinderModels.containsKey(field)) {
-                throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
+                throw new ElasticsearchException("Could not find field [{}], possible values {}", field, nameFinderModels.keySet());
             }
             TokenNameFinderModel finderModel = nameFinderModels.get(field);
             if (threadLocal.get() == null || !threadLocal.get().equals(finderModel)) {

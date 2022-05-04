@@ -17,52 +17,52 @@
 
 package de.spinscale.elasticsearch.ingest.opennlp;
 
-import org.apache.logging.log4j.message.ParameterizedMessage;
-import org.apache.logging.log4j.util.Supplier;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.iterable.Iterables;
-import org.elasticsearch.test.ESTestCase;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static org.hamcrest.core.Is.is;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class OpenNlpThreadSafeTests extends ESTestCase {
+public class OpenNlpThreadSafeTests {
 
+    private static final Settings settings = Settings.builder()
+                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
+                .build();
     private OpenNlpService service;
     private ExecutorService executorService;
 
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        Settings settings = Settings.builder()
-                .put("ingest.opennlp.model.file.locations", "en-ner-locations.bin")
-                .build();
-        service = new OpenNlpService(getDataPath("/models/en-ner-persons.bin").getParent(), settings).start();
+    @BeforeEach
+    public void setup() throws Exception {
+        service = new OpenNlpService(Path.of("src/test/resources/models/"), settings).start();
         executorService = Executors.newFixedThreadPool(10);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
-        super.tearDown();
-        terminate(executorService);
+        executorService.shutdownNow();
+        executorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 
+    @Test
     public void testThatOpenNlpServiceIsThreadSafe() throws Exception {
         int runs = 1000;
         CountDownLatch latch = new CountDownLatch(runs);
         List<OpennlpRunnable> runnables = new ArrayList<>();
 
+        String[] cities = new String[] {"Munich", "Stockholm", "Madrid", "San Francisco", "Cologne", "Paris", "London", "Amsterdam"};
+
         for (int i = 0; i < runs; i++) {
-            String city = randomFrom("Munich", "Stockholm", "Madrid", "San Francisco", "Cologne", "Paris", "London", "Amsterdam");
+            String city = cities[runs % cities.length];
 
             OpennlpRunnable runnable = new OpennlpRunnable(i, city, latch);
             runnables.add(runnable);
@@ -97,14 +97,13 @@ public class OpenNlpThreadSafeTests extends ESTestCase {
                     result = Iterables.get(locations.getEntityValues(), 0);
                 }
             } catch (Exception e) {
-                logger.error((Supplier<?>) () -> new ParameterizedMessage("Unexpected exception"), e);
             } finally {
                 latch.countDown();
             }
         }
 
         private void assertResultIsCorrect() {
-            assertThat(String.format(Locale.ROOT, "Expected task %s to have result %s", idx, city), result, is(city));
+            assertThat(result).isEqualTo(city);
         }
     }
 }

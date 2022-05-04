@@ -1,20 +1,6 @@
-import de.undercouch.gradle.tasks.download.Download
-
-import org.elasticsearch.gradle.testclusters.StandaloneRestIntegTestTask
-import org.gradle.api.tasks.Input;
-import org.gradle.process.CommandLineArgumentProvider;
+import org.apache.tools.ant.filters.ReplaceTokens
 
 import java.nio.file.Files
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-buildscript {
-  dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:${elasticsearchVersion}"
-  }
-}
 
 plugins {
   id "de.undercouch.download" version "4.1.1"
@@ -25,10 +11,6 @@ plugins {
 
 repositories {
   mavenCentral()
-  maven {
-    // only needed for beta1, can be removed after upgrading to newer version
-    url = 'https://s3.amazonaws.com/download.elasticsearch.org/lucenesnapshots/cc2a31f2be8'
-  }
 }
 
 group = 'de.spinscale.elasticsearch.plugin.ingest'
@@ -36,80 +18,117 @@ version = "${elasticsearchVersion}.1-SNAPSHOT"
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'elasticsearch.esplugin'
-apply plugin: 'elasticsearch.testclusters'
 
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
-esplugin {
-  licenseFile = rootProject.file('LICENSE.txt')
-  noticeFile = rootProject.file('NOTICE.txt')
-  name = 'ingest-opennlp'
-  description = 'Ingest processor that uses OpenNLP for named entity extraction'
-  classname = 'de.spinscale.elasticsearch.ingest.opennlp.IngestOpenNlpPlugin'
+task pluginDescriptor(type: Copy) {
+    from('src/main/resources') {
+        include '**/*.properties'
+        filter(ReplaceTokens, tokens: [
+                'version': version.replace('-SNAPSHOT', '').toString(),
+                'elasticsearchVersion': elasticsearchVersion.toString()
+        ])
+    }
+    into 'build/libs'
 }
 
-// remove me after alpha-2 release
-configurations {
-  resolveableCompileOnly {
-    exclude(group: 'org.elasticsearch', module: 'elasticsearch-lz4')
-  }
-  implementation {
-    exclude(group: 'org.elasticsearch', module: 'elasticsearch-lz4')
-  }
+task copyDependencies(type: Copy) {
+    into 'build/libs'
+    from configurations.default
+    from 'NOTICE.txt'
+    from 'LICENSE.txt'
+}
+
+task packageDistribution(type: Zip) {
+    archiveFileName = "elasticsearch-ingest-opennlp.zip"
+    destinationDirectory = layout.buildDirectory.dir('distribution')
+
+    from layout.buildDirectory.dir("libs")
+}
+
+task builderDockerImage(type: Exec) {
+    commandLine 'docker', 'build', '.'
+}
+
+// split tests between unit and integration tests
+def testReporter = { desc, result ->
+    if (!desc.parent) {
+        def duration = java.time.Duration.ofMillis(result.endTime - result.startTime)
+        println "\nTest summary: ${result.resultType},  ${result.testCount} tests, " +
+                "${result.successfulTestCount} succeeded, " +
+                "${result.failedTestCount} failed, " +
+                "${result.skippedTestCount} skipped, took ${duration}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform {
+        excludeTags 'slow'
+    }
+
+    afterSuite testReporter
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform {
+        includeTags 'slow'
+    }
+
+    afterSuite testReporter
+}
+
+packageDistribution.dependsOn 'downloadModels'
+packageDistribution.dependsOn 'pluginDescriptor'
+packageDistribution.dependsOn 'copyDependencies'
+packageDistribution.dependsOn 'jar'
+builderDockerImage.dependsOn 'packageDistribution'
+integrationTest.dependsOn 'builderDockerImage'
+
+// ignore javadoc warnings for now
+tasks.withType(Javadoc) {
+    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 githubRelease.doFirst {
-  if (!System.getProperty('GITHUB_TOKEN', '')) {
-    throw new Exception('Missing property GITHUB_TOKEN')
-  }
+    if (!System.getProperty('GITHUB_TOKEN', '')) {
+        throw new Exception('Missing property GITHUB_TOKEN')
+    }
 
-  // check if zip file is there
-  assert file("build/distributions/ingest-opennlp-${version}.zip").exists()
+    def currentVersion = version.replace('-SNAPSHOT', '')
+    def filename = "build/distribution/ingest-opennlp-${currentVersion}.zip"
+    Files.copy(file("build/distribution/elasticsearch-ingest-opennlp.zip").toPath(), file(filename).toPath())
 
-  // rename zip file
-  def currentVersion = version.replace('-SNAPSHOT', '')
-  def filename = "build/distributions/ingest-opennlp-${currentVersion}.zip"
-  Files.copy(file("build/distributions/ingest-opennlp-${version}.zip").toPath(), file(filename).toPath())
-
-  // configuration
-  github {
-    owner = 'spinscale'
-    repo = 'elasticsearch-ingest-opennlp'
-    token = System.getProperty('GITHUB_TOKEN')
-    tagName = currentVersion
-    assets = [ filename ]
-    targetCommitish = 'main'
-  }
+    // configuration
+    github {
+        owner = 'spinscale'
+        repo = 'elasticsearch-ingest-opennlp'
+        token = System.getProperty('GITHUB_TOKEN')
+        tagName = currentVersion
+        assets = [ filename ]
+        targetCommitish = 'main'
+    }
 }
 
-githubRelease.dependsOn assemble
+githubRelease.dependsOn 'packageDistribution'
 
-// In this section you declare the dependencies for your production and test code
-// Elasticsearch dependency is included due to the build-tools, test-framework as well
 dependencies {
+  def junitVersion = '5.8.2'
+
   implementation 'org.apache.opennlp:opennlp-tools:1.9.4'
+  compileOnly "org.elasticsearch:elasticsearch:$elasticsearchVersion"
 
-  // the yaml tests require a log4j2 dependency, otherwise a dependency is thrown on startup
-  runtimeOnly 'org.apache.logging.log4j:log4j-core:2.17.1'
-}
-
-testClusters.all {
-  setting 'ingest.opennlp.model.file.names',     'en-ner-persons.bin'
-  setting 'ingest.opennlp.model.file.locations', 'en-ner-locations.bin'
-  setting 'ingest.opennlp.model.file.dates',     'en-ner-dates.bin'
-
-  cliSetup 'ingest-opennlp/download-models'
-}
-
-// ignore javadoc errors for now
-tasks.withType(Javadoc) {
-  options.addStringOption('Xdoclint:none', '-quiet')
-}
-
-// download the models before the tests are run, also needed for packaging
-project.afterEvaluate {
-  processTestResources.dependsOn downloadModels
+  testImplementation "org.elasticsearch:elasticsearch:$elasticsearchVersion"
+  testImplementation 'co.elastic.clients:elasticsearch-java:8.2.0'
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
+  testImplementation('org.testcontainers:elasticsearch:1.17.1') {
+    exclude group: 'junit', module: 'junit'
+  }
+  testImplementation 'org.testcontainers:junit-jupiter:1.17.1'
+  testImplementation "org.assertj:assertj-core:3.22.0"
+  testImplementation "org.slf4j:slf4j-simple:1.7.36"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+  testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 }
 
 // download the models but dont overwrite existing ones
@@ -130,89 +149,4 @@ def downloadIfNotExists(String url, String file) {
       dest new File(dir, file)
     }
   }
-}
-
-// setup yaml rest tests
-testClusters {
-  yamlRestTest
-}
-
-sourceSets {
-  yamlRestTest
-}
-
-configurations {
-  yamlRestTestImplementation.extendsFrom testImplementation
-  yamlRestTestRuntimeOnly.extendsFrom testRuntimeOnly
-  restTestSpecs
-}
-
-tasks.register('copyRestTestSpecs', Copy) {
-  from zipTree(configurations.restTestSpecs.singleFile)
-  into "$buildDir/restResources/restspec"
-}
-
-TaskProvider<Zip> bundle = project.getTasks().withType(Zip.class).named("bundlePlugin");
-
-// Register rest resources with source set
-sourceSets.yamlRestTest.getOutput().dir("$buildDir/restResources/restspec");
-
-tasks.register('yamlRestTest', StandaloneRestIntegTestTask) { testTask ->
-    testTask.dependsOn(bundle, 'copyRestTestSpecs')
-
-    def cluster = testClusters.yamlRestTest
-    cluster.plugin(bundle.flatMap(AbstractArchiveTask::getArchiveFile))
-    testTask.useCluster(testClusters.yamlRestTest)
-
-    testTask.mustRunAfter(project.getTasks().named("test"))
-    testTask.setTestClassesDirs(sourceSets.yamlRestTest.getOutput().getClassesDirs())
-    testTask.setClasspath(sourceSets.yamlRestTest.getRuntimeClasspath())
-
-
-    SystemPropertyCommandLineArgumentProvider nonInputProperties = new SystemPropertyCommandLineArgumentProvider()
-    nonInputProperties.systemProperty("tests.rest.cluster", "${-> String.join(",", cluster.getAllHttpSocketURI())}")
-    nonInputProperties.systemProperty("tests.cluster", "${-> String.join(",", cluster.getAllTransportPortURI())}")
-    nonInputProperties.systemProperty("tests.clustername", "${-> cluster.getName()}")
-    testTask.getJvmArgumentProviders().add(nonInputProperties)
-    testTask.systemProperty("tests.rest.load_packaged", Boolean.FALSE.toString())
-}
-
-// this is a bit of a hack to make sure we run the test tests when releasing...
-check.dependsOn 'yamlRestTest'
-
-dependencies {
-  yamlRestTestImplementation "org.elasticsearch.test:framework:$elasticsearchVersion"
-  restTestSpecs "org.elasticsearch:rest-api-spec:$elasticsearchVersion"
-}
-
-// This will be available in 7.15 in build tools and not manually declared. 
-public class SystemPropertyCommandLineArgumentProvider implements CommandLineArgumentProvider {
-    private final Map<String, Object> systemProperties = new LinkedHashMap<>();
-
-    public void systemProperty(String key, Supplier<String> value) {
-        systemProperties.put(key, value);
-    }
-
-    public void systemProperty(String key, Object value) {
-        systemProperties.put(key, value);
-    }
-
-    @Override
-    public Iterable<String> asArguments() {
-        return systemProperties.entrySet()
-            .stream()
-            .map(
-                entry -> "-D"
-                    + entry.getKey()
-                    + "="
-                    + (entry.getValue() instanceof Supplier ? ((Supplier) entry.getValue()).get() : entry.getValue())
-            )
-            .collect(Collectors.toList());
-    }
-
-    // Track system property keys as an input so our build cache key will change if we add properties but values are still ignored
-    @Input
-    public Iterable<String> getPropertyNames() {
-        return systemProperties.keySet();
-    }
 }

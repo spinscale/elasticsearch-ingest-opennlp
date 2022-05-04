@@ -19,16 +19,16 @@ package de.spinscale.elasticsearch.ingest.opennlp;
 
 import org.elasticsearch.action.ingest.SimulateProcessorResult;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.core.PathUtils;
+import org.elasticsearch.core.Tuple;
+import org.elasticsearch.index.VersionType;
+import org.elasticsearch.ingest.IngestDocument;
+import org.elasticsearch.ingest.Processor;
 import org.elasticsearch.xcontent.ToXContent;
 import org.elasticsearch.xcontent.XContentBuilder;
 import org.elasticsearch.xcontent.XContentFactory;
-import org.elasticsearch.core.PathUtils;
-import org.elasticsearch.core.Tuple;
-import org.elasticsearch.ingest.IngestDocument;
-import org.elasticsearch.ingest.Processor;
-import org.elasticsearch.ingest.RandomDocumentPicks;
-import org.elasticsearch.test.ESTestCase;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -38,18 +38,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class OpenNlpProcessorTests extends ESTestCase {
+public class OpenNlpProcessorTests {
 
     private static OpenNlpService service;
 
-    @BeforeClass
+    @BeforeAll
     public static void createOpenNlpService() throws Exception {
         Settings settings = Settings.builder()
                 .put("ingest.opennlp.model.file.names", "en-ner-persons.bin")
@@ -61,8 +56,9 @@ public class OpenNlpProcessorTests extends ESTestCase {
         service = new OpenNlpService(path.getParent(), settings).start();
     }
 
+    @Test
     public void testThatExtractionsWork() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, null, "source_field", "target_field",
                 null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
@@ -72,19 +68,21 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "locations", "Munich", "New York");
     }
 
+    @Test
     public void testThatFieldsCanBeExcluded() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, null, "source_field", "target_field",
                 null, new HashSet<>(Arrays.asList("dates")), "description");
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
-        assertThat(entityData, not(hasKey("locations")));
-        assertThat(entityData, not(hasKey("names")));
+        assertThat(entityData).doesNotContainKey("locations");
+        assertThat(entityData).doesNotContainKey("names");
         assertThatHasElements(entityData, "dates", "Yesterday");
     }
 
+    @Test
     public void testThatExistingValuesAreMergedWithoutDuplicates() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, null, "source_field", "target_field",
                 null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         IngestDocument ingestDocument = getIngestDocument();
@@ -105,6 +103,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "locations", "Paris", "Munich", "New York");
     }
 
+    @Test
     public void testConstructorNoFieldsSpecified() throws Exception {
         Map<String, Object> config = new HashMap<>();
         config.put("field", "source_field");
@@ -112,7 +111,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), "description", config);
+        OpenNlpProcessor processor = factory.create(registry, null, "description", config);
 
         Map<String, Object> entityData = getIngestDocumentData(processor);
 
@@ -121,8 +120,9 @@ public class OpenNlpProcessorTests extends ESTestCase {
         assertThatHasElements(entityData, "locations", "Munich", "New York");
     }
 
+    @Test
     public void testToXContent() throws Exception {
-        OpenNlpProcessor processor = new OpenNlpProcessor(service, randomAlphaOfLength(10), "source_field", "target_field",
+        OpenNlpProcessor processor = new OpenNlpProcessor(service, null, "source_field", "target_field",
                 null, new HashSet<>(Arrays.asList("names", "dates", "locations")), "description");
 
         IngestDocument ingestDocument = getIngestDocument();
@@ -136,6 +136,7 @@ public class OpenNlpProcessorTests extends ESTestCase {
         }
     }
 
+    @Test
     public void testAnnotatedText() throws Exception {
         Map<String, Object> config = new HashMap<>();
         config.put("field", "source_field");
@@ -143,14 +144,14 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
         OpenNlpProcessor.Factory factory = new OpenNlpProcessor.Factory(service);
         Map<String, Processor.Factory> registry = Collections.emptyMap();
-        OpenNlpProcessor processor = factory.create(registry, randomAlphaOfLength(10), "description", config);
+        OpenNlpProcessor processor = factory.create(registry, null, "description", config);
 
         IngestDocument ingestDocument = processor.execute(getIngestDocument());
         String content = ingestDocument.getFieldValue("my_annotated_text_field", String.class);
-        assertThat(content, is("[Kobe Bryant](Person_Kobe Bryant) was one of the best basketball players of all times. Not even" +
+        assertThat(content).endsWith("[Kobe Bryant](Person_Kobe Bryant) was one of the best basketball players of all times. Not even" +
                 " [Michael Jordan](Person_Michael Jordan) has ever scored 81 points in one game. [Munich](Location_Munich) is really" +
                 " an awesome city, but [New York](Location_New York) is as well. [Yesterday](Date_Yesterday) has been the hottest" +
-                " day of the year."));
+                " day of the year.");
     }
 
     private Map<String, Object> getIngestDocumentData(OpenNlpProcessor processor) throws Exception {
@@ -167,7 +168,8 @@ public class OpenNlpProcessorTests extends ESTestCase {
     private IngestDocument getIngestDocument(String content) throws Exception {
         Map<String, Object> document = new HashMap<>();
         document.put("source_field", content);
-        return RandomDocumentPicks.randomIngestDocument(random(), document);
+        //     public IngestDocument(String index, String id, String routing, Long version, VersionType versionType, Map<String, Object> source) {
+        return new IngestDocument("my-index", "my-id", null, 1L, VersionType.INTERNAL, document);
     }
 
     private Map<String, Object> getIngestDocumentData(IngestDocument ingestDocument) throws Exception {
@@ -178,13 +180,13 @@ public class OpenNlpProcessorTests extends ESTestCase {
 
     private void assertThatHasElements(Map<String, Object> entityData, String field, String ... items) {
         List<String> values = getValues(entityData, field);
-        assertThat(values, hasSize(items.length));
-        assertThat(values, containsInAnyOrder(items));
+        assertThat(values).hasSize(items.length);
+        assertThat(values).contains(items);
     }
 
     private List<String> getValues(Map<String, Object> entityData, String field) {
-        assertThat(entityData, hasKey(field));
-        assertThat(entityData.get(field), instanceOf(List.class));
+        assertThat(entityData).containsKey(field);
+        assertThat(entityData.get(field)).isInstanceOf(List.class);
         @SuppressWarnings("unchecked")
         List<String> values = (List<String>) entityData.get(field);
         return values;
