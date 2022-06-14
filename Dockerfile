@@ -1,4 +1,4 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.2.0
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.2.1
 
 ADD ./src/test/resources/models/en-ner-persons.bin /usr/share/elasticsearch/config/ingest-opennlp/
 ADD ./src/test/resources/models/en-ner-locations.bin /usr/share/elasticsearch/config/ingest-opennlp/

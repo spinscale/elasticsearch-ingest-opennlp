@@ -10,6 +10,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 
 | ES    | Command |
 | ----- | ------- |
+| 8.2.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.2.1.1/ingest-opennlp-8.2.0.1.zip` |
 | 8.2.0 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.2.0.1/ingest-opennlp-8.2.0.1.zip` |
 | 8.1.3 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.1.3.1/ingest-opennlp-8.1.3.1.zip` |
 | 8.1.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.1.2.1/ingest-opennlp-8.1.2.1.zip` |
@@ -20,6 +21,7 @@ This plugin is also intended to show you, that using gradle as a build system ma
 | 8.0.0-rc1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-rc1.1/ingest-opennlp-8.0.0-rc1.1.zip` |
 | 8.0.0-beta1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-beta1.1/ingest-opennlp-8.0.0-beta1.1.zip` |
 | 8.0.0-alpha2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/8.0.0-alpha2.1/ingest-opennlp-8.0.0-alpha2.1.zip` |
+| 7.17.4 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.17.4.1/ingest-opennlp-7.17.4.1.zip` |
 | 7.17.3 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.17.3.1/ingest-opennlp-7.17.3.1.zip` |
 | 7.17.2 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.17.2.1/ingest-opennlp-7.17.2.1.zip` |
 | 7.17.1 | `bin/elasticsearch-plugin install https://github.com/spinscale/elasticsearch-ingest-opennlp/releases/download/7.17.1.1/ingest-opennlp-7.17.1.1.zip` |
