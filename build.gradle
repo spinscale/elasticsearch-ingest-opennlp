@@ -118,7 +118,7 @@ dependencies {
   compileOnly "org.elasticsearch:elasticsearch:$elasticsearchVersion"
 
   testImplementation "org.elasticsearch:elasticsearch:$elasticsearchVersion"
-  testImplementation 'co.elastic.clients:elasticsearch-java:8.2.0'
+  testImplementation "co.elastic.clients:elasticsearch-java:$elasticsearchVersion"
   testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.12.3'
   testImplementation('org.testcontainers:elasticsearch:1.17.1') {
     exclude group: 'junit', module: 'junit'

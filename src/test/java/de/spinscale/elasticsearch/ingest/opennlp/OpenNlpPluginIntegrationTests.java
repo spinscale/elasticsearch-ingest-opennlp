@@ -48,7 +48,7 @@ public class OpenNlpPluginIntegrationTests {
         container.addEnv("discovery.type", "single-node");
         container.withEnv("xpack.security.enabled", "false");
         container.addExposedPorts(9200);
-        container.setWaitStrategy(new LogMessageWaitStrategy().withRegEx(".*(\"message\":\\s?\"started\".*|] started\n$)"));
+        container.setWaitStrategy(new LogMessageWaitStrategy().withRegEx(".*(\"message\":\\s?\"started[\\s?|\"].*|] started\n$)"));
 
         container.start();
         container.followOutput(new Slf4jLogConsumer(LoggerFactory.getLogger(OpenNlpPluginIntegrationTests.class)));

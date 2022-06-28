@@ -18,9 +18,10 @@
 package de.spinscale.elasticsearch.ingest.opennlp;
 
 import joptsimple.OptionSet;
-import org.elasticsearch.common.cli.EnvironmentAwareCommand;
-import org.elasticsearch.cli.SuppressForbidden;
+import org.elasticsearch.cli.ProcessInfo;
 import org.elasticsearch.cli.Terminal;
+import org.elasticsearch.common.cli.EnvironmentAwareCommand;
+import org.elasticsearch.core.SuppressForbidden;
 import org.elasticsearch.env.Environment;
 
 import java.io.InputStream;
@@ -32,7 +33,7 @@ import java.nio.file.Path;
 public class OpenNlpModelDownloader extends EnvironmentAwareCommand {
 
     public static void main(String[] args) throws Exception {
-        exit(new OpenNlpModelDownloader().main(args, Terminal.DEFAULT));
+        exit(new OpenNlpModelDownloader().main(args, Terminal.DEFAULT, ProcessInfo.fromSystem()));
     }
 
     public OpenNlpModelDownloader() {
@@ -40,7 +41,7 @@ public class OpenNlpModelDownloader extends EnvironmentAwareCommand {
     }
 
     @Override
-    protected void execute(Terminal terminal, OptionSet options, Environment env) throws Exception {
+    public void execute(Terminal terminal, OptionSet options, Environment env, ProcessInfo processInfo) throws Exception {
         Path configDirectoryPath = env.configFile().resolve(IngestOpenNlpPlugin.NAME).normalize().toAbsolutePath();
         if (Files.exists(configDirectoryPath) == false) {
             Files.createDirectories(configDirectoryPath);
