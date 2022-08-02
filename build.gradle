@@ -32,6 +32,11 @@ task pluginDescriptor(type: Copy) {
     into 'build/libs'
 }
 
+task copyCommands(type: Copy) {
+    into 'build/libs/bin'
+    from 'src/main/bin'
+}
+
 task copyDependencies(type: Copy) {
     into 'build/libs'
     from configurations.default
@@ -77,8 +82,9 @@ task integrationTest(type: Test) {
     afterSuite testReporter
 }
 
-packageDistribution.dependsOn 'downloadModels'
+test.dependsOn 'downloadModels'
 packageDistribution.dependsOn 'pluginDescriptor'
+packageDistribution.dependsOn 'copyCommands'
 packageDistribution.dependsOn 'copyDependencies'
 packageDistribution.dependsOn 'jar'
 builderDockerImage.dependsOn 'packageDistribution'
