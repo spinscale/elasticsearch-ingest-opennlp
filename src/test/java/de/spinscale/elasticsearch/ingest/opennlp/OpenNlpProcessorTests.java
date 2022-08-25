@@ -31,12 +31,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -168,8 +163,7 @@ public class OpenNlpProcessorTests {
     private IngestDocument getIngestDocument(String content) throws Exception {
         Map<String, Object> document = new HashMap<>();
         document.put("source_field", content);
-        //     public IngestDocument(String index, String id, String routing, Long version, VersionType versionType, Map<String, Object> source) {
-        return new IngestDocument("my-index", "my-id", null, 1L, VersionType.INTERNAL, document);
+        return new IngestDocument("my-index", "my-id", 1L, null, VersionType.INTERNAL, document);
     }
 
     private Map<String, Object> getIngestDocumentData(IngestDocument ingestDocument) throws Exception {
