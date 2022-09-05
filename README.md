@@ -1,5 +1,7 @@
 # Elasticsearch OpenNLP Ingest Processor
 
+**Note: Maintainer wanted. I cannot guarantee to keep maintaining this, so if you want to take over as a maintainer, please fork the repo, provide new packages per release and give me a ping to link to your repository!**
+
 I wrote a [opennlp mapping plugin](https://github.com/spinscale/elasticsearch-opennlp-plugin) a couple of years ago and people asked me, why I did not update it. The main reason was, that it was a bad architectural choice as mentioned in the [openlp plugin README](https://github.com/spinscale/elasticsearch-opennlp-plugin#elasticsearch-opennlp-plugin). With the introduction of ingest processors in Elasticsearch 5.0 this problem has been resolved.
 
 This processor is doing named/date/location/'whatever you have a model for' entity recognition and stores the output in the JSON before it is being stored.
